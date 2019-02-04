@@ -38,6 +38,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 
 import ar.com.dcbarrientos.db.Database;
+import ar.com.dcbarrientos.gui.tabs.HostTab;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -49,10 +50,15 @@ public class Ventana extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	private Database database;
+	private HostTab hostTab;
 	
 	public Ventana(Database database) {
 		super();
 		this.database = database;
+		initComponents();
+	}
+	
+	private void initComponents() {
 		getContentPane().setLayout(new BorderLayout(0, 0));
 		
 		JSplitPane mainSplit = new JSplitPane();
@@ -63,6 +69,10 @@ public class Ventana extends JFrame {
 		mainSplit.setLeftComponent(secondarySplit);
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		
+		hostTab = new HostTab(this, database);
+		tabbedPane.add(hostTab.title, hostTab);
+		
 		secondarySplit.setRightComponent(tabbedPane);
 		
 		JScrollPane scrollPane = new JScrollPane();
@@ -83,10 +93,6 @@ public class Ventana extends JFrame {
 		
 		JLabel lblNewLabel = new JLabel("New label");
 		panel.add(lblNewLabel);
-		initComponents();
-	}
-	
-	private void initComponents() {
 		
 	}
 }

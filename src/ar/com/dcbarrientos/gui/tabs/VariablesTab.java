@@ -16,42 +16,48 @@
  */
 
 /** 
- * DatabaseTree.java
+ * VariablesTab.java
  *
  * Description:	    <Descripcion>
  * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
- * Created on 1 feb. 2019, 19:58:34 
+ * Created on 4 feb. 2019, 11:47:53 
  */
 
-package ar.com.dcbarrientos.gui;
-
-import javax.swing.JTree;
+package ar.com.dcbarrientos.gui.tabs;
 
 import ar.com.dcbarrientos.db.Database;
+import ar.com.dcbarrientos.gui.DatabaseElement;
+import ar.com.dcbarrientos.gui.Ventana;
+import java.awt.BorderLayout;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class DatabaseTree extends JTree{
-	/**
-	 * 
-	 */
+public class VariablesTab extends DatabaseElement{
 	private static final long serialVersionUID = 1L;
-	private Database database;
 	
-	public DatabaseTree(Database database) {
-		this.database = database;
-		loadData();
-	}
+	public final String TITLE = "Variables";
 	
-	private void loadData() {
+	private JTable variablesTable;
+
+	public VariablesTab(Ventana ventana, Database database) {
+		super(ventana, database);
+		setLayout(new BorderLayout(0, 0));
 		
-		System.out.println("Connection ID: " + database.getConnectionID());
+		JScrollPane scrollPane = new JScrollPane();
+		add(scrollPane, BorderLayout.CENTER);
+		
+		variablesTable = new JTable();
+		scrollPane.setViewportView(variablesTable);
 	}
 
-	void refresh() {
+	@Override
+	public void refresh() {
 		
 	}
+
 }

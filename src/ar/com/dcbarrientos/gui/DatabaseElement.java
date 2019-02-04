@@ -26,10 +26,24 @@
 
 package ar.com.dcbarrientos.gui;
 
+import javax.swing.JPanel;
+
+import ar.com.dcbarrientos.db.Database;
+
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public abstract class DatabaseElement {
-	abstract void refresh();
+public abstract class DatabaseElement extends JPanel{
+	private static final long serialVersionUID = 1L;
+	
+	protected Database database;
+	protected Ventana ventana;
+	
+	public DatabaseElement(Ventana ventana, Database database) {
+		this.ventana = ventana;
+		this.database = database;
+	}
+	
+	public abstract void refresh();
 }

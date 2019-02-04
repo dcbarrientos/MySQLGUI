@@ -57,6 +57,7 @@ public class Database {
 	}
 
 	public Database(String host, int port, String user, String pass) {
+		this.host = host;
 		this.port = port;
 		this.user = user;
 		this.pass = pass;
