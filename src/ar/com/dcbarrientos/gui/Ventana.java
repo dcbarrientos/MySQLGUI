@@ -50,10 +50,12 @@ public class Ventana extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	private Database database;
+	private DatabaseTree tree;
 	private HostTab hostTab;
 	
 	public Ventana(Database database) {
 		super();
+		
 		this.database = database;
 		initComponents();
 	}
@@ -78,7 +80,7 @@ public class Ventana extends JFrame {
 		JScrollPane scrollPane = new JScrollPane();
 		secondarySplit.setLeftComponent(scrollPane);
 		
-		DatabaseTree tree = new DatabaseTree(database);
+		tree = new DatabaseTree(this, database);
 		scrollPane.setViewportView(tree);
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
@@ -93,6 +95,11 @@ public class Ventana extends JFrame {
 		
 		JLabel lblNewLabel = new JLabel("New label");
 		panel.add(lblNewLabel);
+		
+		
+	}
+	
+	void refresh() {
 		
 	}
 }

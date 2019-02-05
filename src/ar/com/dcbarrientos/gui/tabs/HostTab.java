@@ -43,27 +43,29 @@ public class HostTab extends DatabaseElement{
 
 	public final String title = "Host";
 	
+	private JLabel hostDescription;
 	private VariablesTab variables;
 	
 	public HostTab(Ventana ventana, Database database) {
 		super(ventana, database);
 		
 		initComponents();
+		refresh();
 	}
 	
 	public void initComponents() {
 		setLayout(new BorderLayout(0, 0));
 		
-		JLabel lblNewLabel = new JLabel("New label");
-		lblNewLabel.setBackground(Color.BLACK);
-		lblNewLabel.setForeground(Color.WHITE);
-		lblNewLabel.setOpaque(true);
-		add(lblNewLabel, BorderLayout.NORTH);
+		hostDescription = new JLabel("New label");
+		hostDescription.setBackground(Color.BLACK);
+		hostDescription.setForeground(Color.WHITE);
+		hostDescription.setOpaque(true);
+		add(hostDescription, BorderLayout.NORTH);
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		
 		variables = new VariablesTab(ventana, database);
-		tabbedPane.add(variables.TITLE, variables);
+		tabbedPane.add(variables.TITLE + " (" + variables.variablesCount + ")", variables);
 		
 		
 		add(tabbedPane, BorderLayout.CENTER);
@@ -71,8 +73,7 @@ public class HostTab extends DatabaseElement{
 
 	@Override
 	public void refresh() {
-		// TODO Auto-generated method stub
-		
+		hostDescription.setText(database.user + " running MySQL - version " + database.getVersion());
 	}
 
 }

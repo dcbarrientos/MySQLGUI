@@ -26,12 +26,18 @@
 
 package ar.com.dcbarrientos.gui.tabs;
 
+import java.awt.BorderLayout;
+import java.sql.SQLException;
+
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
+
+import ar.com.dcbarrientos.Application;
 import ar.com.dcbarrientos.db.Database;
 import ar.com.dcbarrientos.gui.DatabaseElement;
 import ar.com.dcbarrientos.gui.Ventana;
-import java.awt.BorderLayout;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -41,23 +47,107 @@ public class VariablesTab extends DatabaseElement{
 	private static final long serialVersionUID = 1L;
 	
 	public final String TITLE = "Variables";
+	private final int COLUMN_COUNT = 2;
 	
 	private JTable variablesTable;
+	private String[] columnHeader = {"Variables", "Value"};
+	private String[][] datos;
+	public int variablesCount = 0;
+	
 
 	public VariablesTab(Ventana ventana, Database database) {
 		super(ventana, database);
+		
+		loadData();
+		initComponents();
+	}
+	
+	private void initComponents() {
 		setLayout(new BorderLayout(0, 0));
 		
 		JScrollPane scrollPane = new JScrollPane();
 		add(scrollPane, BorderLayout.CENTER);
 		
 		variablesTable = new JTable();
-		scrollPane.setViewportView(variablesTable);
+		variablesTable.setModel(getModel());
+		scrollPane.setViewportView(variablesTable);		
+	}
+	
+	private TableModel getModel() {
+		TableModel model = new AbstractTableModel() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getColumnName(int column) {
+				return columnHeader[column];
+			}
+			
+			@Override
+			public Object getValueAt(int rowIndex, int columnIndex) {
+				return datos[rowIndex][columnIndex];
+			}
+			
+			@Override
+			public int getRowCount() {
+				return variablesCount;
+			}
+			
+			@Override
+			public int getColumnCount() {
+				return COLUMN_COUNT;
+			}
+			
+			@Override
+			public boolean isCellEditable(int rowIndex, int columnIndex) {
+				return false;
+			}
+		};
+		
+		return model;
+	}
+	
+	private boolean loadData() {
+		boolean r = false;
+		
+		database.executeQuery("Show variables;");
+		variablesCount = database.getQueryCount();
+		datos = new String[variablesCount][];
+		
+		try {
+			int i = 0;
+			while(database.getQueryResult().next()) {
+				datos[i] = new String[2];
+				datos[i][0] = database.getQueryResult().getString(1);
+				datos[i][1] = database.getQueryResult().getString(2);
+				i++;
+			}
+		} catch (SQLException e) {
+			if(Application.DEBUG)
+				e.printStackTrace();
+		}
+		
+		database.closeQuery();
+		return r;
 	}
 
 	@Override
 	public void refresh() {
+		loadData();
+	}
+	
+ 	private boolean mShown = false;
+  	
+	public void addNotify() 
+	{
+		super.addNotify();
 		
+		if (mShown)
+			return;
+
+		mShown = true;
 	}
 
 }

@@ -26,6 +26,8 @@
 
 package ar.com.dcbarrientos.gui;
 
+import java.awt.BorderLayout;
+
 import javax.swing.JTree;
 
 import ar.com.dcbarrientos.db.Database;
@@ -34,16 +36,26 @@ import ar.com.dcbarrientos.db.Database;
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class DatabaseTree extends JTree{
+public class DatabaseTree extends DatabaseElement{
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private Database database;
 	
-	public DatabaseTree(Database database) {
-		this.database = database;
+	private JTree tree;
+	
+	public DatabaseTree(Ventana ventana, Database database) {
+		super(ventana, database);
+
+		initComponents();
 		loadData();
+	}
+	
+	void initComponents() {
+		tree = new JTree();
+		
+		setLayout(new BorderLayout());
+		add(tree, BorderLayout.CENTER);
 	}
 	
 	private void loadData() {
@@ -51,7 +63,9 @@ public class DatabaseTree extends JTree{
 		System.out.println("Connection ID: " + database.getConnectionID());
 	}
 
-	void refresh() {
-		
+	@Override
+	public void refresh() {
+		ventana.refresh();
 	}
+
 }
