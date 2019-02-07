@@ -26,13 +26,16 @@
 
 package ar.com.dcbarrientos.gui.tabs;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.util.Vector;
+
+import javax.swing.JLabel;
+import javax.swing.JTabbedPane;
+
 import ar.com.dcbarrientos.db.Database;
 import ar.com.dcbarrientos.gui.DatabaseElement;
 import ar.com.dcbarrientos.gui.Ventana;
-import java.awt.BorderLayout;
-import javax.swing.JLabel;
-import java.awt.Color;
-import javax.swing.JTabbedPane;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -45,12 +48,16 @@ public class HostTab extends DatabaseElement{
 	
 	private JLabel hostDescription;
 	private VariablesTab variables;
+	private ProcessListTab process;
+	private StatusTab status;
+	private StatisticsTab statistics;
+	private Vector<DatabaseElement> tabList;
 	
 	public HostTab(Ventana ventana, Database database) {
 		super(ventana, database);
 		
 		initComponents();
-		refresh();
+		//refresh();
 	}
 	
 	public void initComponents() {
@@ -60,20 +67,38 @@ public class HostTab extends DatabaseElement{
 		hostDescription.setBackground(Color.BLACK);
 		hostDescription.setForeground(Color.WHITE);
 		hostDescription.setOpaque(true);
+		hostDescription.setText(" " + database.user + " running MySQL - version " + database.getVersion());
 		add(hostDescription, BorderLayout.NORTH);
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		
-		variables = new VariablesTab(ventana, database);
-		tabbedPane.add(variables.TITLE + " (" + variables.variablesCount + ")", variables);
+		tabList = new Vector<DatabaseElement>(); 
 		
+		variables = new VariablesTab(ventana, database);
+		tabList.add(variables);
+		tabbedPane.add(variables.title + " (" + variables.variablesCount + ")", variables);
+		
+		process = new ProcessListTab(ventana, database);
+		tabList.add(process);
+		tabbedPane.add(process.title + " (" + process.processCount + ")", process);
+		
+		status = new StatusTab(ventana, database);
+		tabList.add(status);
+		tabbedPane.add(status.title + " (" + status.statusCount + ")", status);
+		
+		statistics = new StatisticsTab(ventana, database);
+		tabList.add(statistics);
+		tabbedPane.add(statistics.title + "(" + statistics.statisticsCount + ")", statistics);
 		
 		add(tabbedPane, BorderLayout.CENTER);
+
 	}
 
 	@Override
 	public void refresh() {
-		hostDescription.setText(database.user + " running MySQL - version " + database.getVersion());
+		for(DatabaseElement element: tabList) {
+			element.refresh();
+		}
 	}
 
 }

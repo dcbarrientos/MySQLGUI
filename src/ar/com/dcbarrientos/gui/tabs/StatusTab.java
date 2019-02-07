@@ -27,8 +27,6 @@
 package ar.com.dcbarrientos.gui.tabs;
 
 import java.awt.BorderLayout;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -44,22 +42,23 @@ import ar.com.dcbarrientos.gui.Ventana;
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class VariablesTab extends DatabaseElement{
+public class StatusTab extends DatabaseElement{
 	private static final long serialVersionUID = 1L;
 	
+
 	public String title;
-	private final int COLUMN_COUNT = 3;
+	private final int COLUMN_COUNT = 2;
 	
-	private JTable variablesTable;
+	private JTable statusTable;
 	private String[] columnHeader = new String[COLUMN_COUNT];
-	LinkedHashMap <String, String[]> datos;
-	public int variablesCount = 0;
+	private String[][] datos;
+	public int statusCount = 0;
 	
 
-	public VariablesTab(Ventana ventana, Database database) {
+	public StatusTab(Ventana ventana, Database database) {
 		super(ventana, database);
 		
-		title = resource.getString("Variables.title");
+		title = resource.getString("StatusTab.title");
 		loadData();
 		initComponents();
 	}
@@ -70,9 +69,9 @@ public class VariablesTab extends DatabaseElement{
 		JScrollPane scrollPane = new JScrollPane();
 		add(scrollPane, BorderLayout.CENTER);
 		
-		variablesTable = new JTable();
-		variablesTable.setModel(getModel());
-		scrollPane.setViewportView(variablesTable);		
+		statusTable = new JTable();
+		statusTable.setModel(getModel());
+		scrollPane.setViewportView(statusTable);		
 	}
 	
 	private TableModel getModel() {
@@ -89,17 +88,12 @@ public class VariablesTab extends DatabaseElement{
 			
 			@Override
 			public Object getValueAt(int rowIndex, int columnIndex) {
-				String valor;
-				if(columnIndex == 0)
-					valor = new ArrayList<String>(datos.keySet()).get(rowIndex);
-				else
-					valor = new ArrayList<String[]>(datos.values()).get(rowIndex)[columnIndex -1];
-				return valor;
+				return datos[rowIndex][columnIndex];
 			}
 			
 			@Override
 			public int getRowCount() {
-				return variablesCount;
+				return statusCount;
 			}
 			
 			@Override
@@ -119,54 +113,32 @@ public class VariablesTab extends DatabaseElement{
 	private boolean loadData() {
 		boolean r = false;
 		
-		columnHeader[0] = resource.getString("Variables.variable");
-		columnHeader[1] = resource.getString("Variables.session");
-		columnHeader[2] = resource.getString("Variables.global");
+		 columnHeader[0] = resource.getString("StatusTab.variable");
+		 columnHeader[1] = resource.getString("StatusTab.value");		
 		
-		String sql1 = "SHOW VARIABLES;";
+		String sql = "SHOW GLOBAL STATUS;";
 		Query query = new Query(database);
-		query.executeQuery(sql1);
-		variablesCount = query.getRowCount();
+		query.executeQuery(sql);
+		statusCount = query.getRowCount();
+		datos = new String[statusCount][];
 		
-		String sql2 = "SHOW GLOBAL VARIABLES";
-		Query query2 = new Query(database);
-		query2.executeQuery(sql2);
-		
-		if(variablesCount < query2.getRowCount())
-			variablesCount = query2.getRowCount();
-		
-		datos =  new LinkedHashMap <String, String[]>();
-		
-		String[] valores;
+		int i = 0;
 		while(query.next()) {
-			valores = new String[COLUMN_COUNT - 1];
-			valores[0] = query.getString(2);
-			datos.put(query.getString(1), valores);
+			datos[i] = new String[2];
+			datos[i][0] = query.getString(1);
+			datos[i][1] = query.getString(2);
+			i++;
 		}
 		
-		while(query2.next()) {
-			valores = new String[COLUMN_COUNT - 1];
-			if(datos.get(query2.getString(1)) == null) {
-				valores[1] = query2.getString(2);
-				datos.put(query2.getString(1), valores);
-			}else {
-				valores[0] = datos.get(query2.getString(1))[0];
-				valores[1] = query2.getString(2);
-				datos.replace(query2.getString(1), valores);
-			}
-		}
-		
-		ventana.addMessage(sql1 + "\n");
-		ventana.addMessage(sql2 + "\n");
+		ventana.addMessage(sql + "\n");
 		query.close();
-		query2.close();
 		return r;
 	}
 
 	@Override
 	public void refresh() {
 		loadData();
-		variablesTable.repaint();
+		statusTable.repaint();
 	}
 	
  	private boolean mShown = false;

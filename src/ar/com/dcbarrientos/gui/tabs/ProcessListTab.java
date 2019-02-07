@@ -27,8 +27,6 @@
 package ar.com.dcbarrientos.gui.tabs;
 
 import java.awt.BorderLayout;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -44,22 +42,24 @@ import ar.com.dcbarrientos.gui.Ventana;
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class VariablesTab extends DatabaseElement{
+public class ProcessListTab extends DatabaseElement{
 	private static final long serialVersionUID = 1L;
 	
-	public String title;
-	private final int COLUMN_COUNT = 3;
 	
-	private JTable variablesTable;
+	public String title;
+	private final int COLUMN_COUNT = 8;
+	
+	private JTable processesTable;
 	private String[] columnHeader = new String[COLUMN_COUNT];
-	LinkedHashMap <String, String[]> datos;
-	public int variablesCount = 0;
+
+	private String[][] datos;
+	public int processCount = 0;
 	
 
-	public VariablesTab(Ventana ventana, Database database) {
+	public ProcessListTab(Ventana ventana, Database database) {
 		super(ventana, database);
 		
-		title = resource.getString("Variables.title");
+		title = resource.getString("ProcessList.title");
 		loadData();
 		initComponents();
 	}
@@ -70,9 +70,9 @@ public class VariablesTab extends DatabaseElement{
 		JScrollPane scrollPane = new JScrollPane();
 		add(scrollPane, BorderLayout.CENTER);
 		
-		variablesTable = new JTable();
-		variablesTable.setModel(getModel());
-		scrollPane.setViewportView(variablesTable);		
+		processesTable = new JTable();
+		processesTable.setModel(getModel());
+		scrollPane.setViewportView(processesTable);		
 	}
 	
 	private TableModel getModel() {
@@ -89,17 +89,12 @@ public class VariablesTab extends DatabaseElement{
 			
 			@Override
 			public Object getValueAt(int rowIndex, int columnIndex) {
-				String valor;
-				if(columnIndex == 0)
-					valor = new ArrayList<String>(datos.keySet()).get(rowIndex);
-				else
-					valor = new ArrayList<String[]>(datos.values()).get(rowIndex)[columnIndex -1];
-				return valor;
+				return datos[rowIndex][columnIndex];
 			}
 			
 			@Override
 			public int getRowCount() {
-				return variablesCount;
+				return processCount;
 			}
 			
 			@Override
@@ -118,55 +113,41 @@ public class VariablesTab extends DatabaseElement{
 	
 	private boolean loadData() {
 		boolean r = false;
+
+		columnHeader[0] = resource.getString("ProcessList.id"); 
+		columnHeader[1] = resource.getString("ProcessList.user");
+		columnHeader[2] = resource.getString("ProcessList.host");
+		columnHeader[3] = resource.getString("ProcessList.db");
+		columnHeader[4] = resource.getString("ProcessList.command");
+		columnHeader[5] = resource.getString("ProcessList.time");
+		columnHeader[6] = resource.getString("ProcessList.state");
+		columnHeader[7] = resource.getString("ProcessList.info");	
 		
-		columnHeader[0] = resource.getString("Variables.variable");
-		columnHeader[1] = resource.getString("Variables.session");
-		columnHeader[2] = resource.getString("Variables.global");
-		
-		String sql1 = "SHOW VARIABLES;";
+		String sql = "SHOW PROCESSLIST";
 		Query query = new Query(database);
-		query.executeQuery(sql1);
-		variablesCount = query.getRowCount();
+		query.executeQuery(sql);
+		processCount = query.getRowCount();
+	
+		datos = new String[processCount][];
 		
-		String sql2 = "SHOW GLOBAL VARIABLES";
-		Query query2 = new Query(database);
-		query2.executeQuery(sql2);
-		
-		if(variablesCount < query2.getRowCount())
-			variablesCount = query2.getRowCount();
-		
-		datos =  new LinkedHashMap <String, String[]>();
-		
-		String[] valores;
+		int i = 0;
 		while(query.next()) {
-			valores = new String[COLUMN_COUNT - 1];
-			valores[0] = query.getString(2);
-			datos.put(query.getString(1), valores);
+			datos[i] = new String[COLUMN_COUNT];
+			for(int j = 0; j < COLUMN_COUNT; j++)
+				datos[i][j] = query.getString(j + 1);
+
+			i++;
 		}
 		
-		while(query2.next()) {
-			valores = new String[COLUMN_COUNT - 1];
-			if(datos.get(query2.getString(1)) == null) {
-				valores[1] = query2.getString(2);
-				datos.put(query2.getString(1), valores);
-			}else {
-				valores[0] = datos.get(query2.getString(1))[0];
-				valores[1] = query2.getString(2);
-				datos.replace(query2.getString(1), valores);
-			}
-		}
-		
-		ventana.addMessage(sql1 + "\n");
-		ventana.addMessage(sql2 + "\n");
 		query.close();
-		query2.close();
+		ventana.addMessage(sql + "\n");
 		return r;
 	}
 
 	@Override
 	public void refresh() {
 		loadData();
-		variablesTable.repaint();
+		processesTable.repaint();
 	}
 	
  	private boolean mShown = false;

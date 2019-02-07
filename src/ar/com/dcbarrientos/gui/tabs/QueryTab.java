@@ -16,38 +16,37 @@
  */
 
 /** 
- * DatabaseElement.java
+ * QueryTab.java
  *
  * Description:	    <Descripcion>
  * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
- * Created on 1 feb. 2019, 21:46:49 
+ * Created on 6 feb. 2019, 18:53:20 
  */
 
-package ar.com.dcbarrientos.gui;
-
-import java.util.ResourceBundle;
-
-import javax.swing.JPanel;
+package ar.com.dcbarrientos.gui.tabs;
 
 import ar.com.dcbarrientos.db.Database;
+import ar.com.dcbarrientos.gui.DatabaseElement;
+import ar.com.dcbarrientos.gui.Ventana;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public abstract class DatabaseElement extends JPanel{
+public class QueryTab extends DatabaseElement{
 	private static final long serialVersionUID = 1L;
-	
-	protected Database database;
-	protected Ventana ventana;
-	protected ResourceBundle resource;
-	
-	public DatabaseElement(Ventana ventana, Database database) {
-		this.ventana = ventana;
-		this.database = database;
-		this.resource = ventana.resource;
+	public String title = resource.getString("QueryTab.title");
+
+	public QueryTab(Ventana ventana, Database database) {
+		super(ventana, database);
+		// TODO Auto-generated constructor stub
 	}
-	
-	public abstract void refresh();
+
+	@Override
+	public void refresh() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

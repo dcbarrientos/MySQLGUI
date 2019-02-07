@@ -28,6 +28,7 @@ package ar.com.dcbarrientos.gui;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ResourceBundle;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -59,16 +60,19 @@ public class Login extends JDialog{
 	private JPasswordField txtPassword;
 	
 	private Database database= null;
+	private ResourceBundle resource;
 
-	public Login() {
+	public Login(ResourceBundle resource) {
+		this.resource = resource;
+		
 		setModal(true);
 		setResizable(false);
-		setTitle("Login");
+		setTitle(this.resource.getString("Login.title"));
 		
 		JPanel panel = new JPanel();
 		panel.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		
-		JButton btnConnect = new JButton("Connect");
+		JButton btnConnect = new JButton(this.resource.getString("Login.btnConnect"));
 		btnConnect.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
@@ -76,7 +80,7 @@ public class Login extends JDialog{
 			}
 		});
 		
-		JButton btnExit = new JButton("Exit");
+		JButton btnExit = new JButton(this.resource.getString("Login.btnExit"));
 		btnExit.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -108,7 +112,7 @@ public class Login extends JDialog{
 					.addContainerGap())
 		);
 		
-		JLabel lblHost = new JLabel("Hostname:");
+		JLabel lblHost = new JLabel(this.resource.getString("Login.hostname"));
 		
 		txtHostName = new JTextField();
 		txtHostName.setColumns(10);
@@ -116,11 +120,11 @@ public class Login extends JDialog{
 		txtPort = new JTextField();
 		txtPort.setColumns(10);
 		
-		JLabel lblPort = new JLabel("Port:");
+		JLabel lblPort = new JLabel(this.resource.getString("Login.port"));
 		
-		JLabel lblUsername = new JLabel("Username:");
+		JLabel lblUsername = new JLabel(this.resource.getString("Login.username"));
 		
-		JLabel lblPassworkd = new JLabel("Password:");
+		JLabel lblPassworkd = new JLabel(this.resource.getString("Login.password"));
 		
 		txtUsername = new JTextField();
 		txtUsername.setColumns(10);

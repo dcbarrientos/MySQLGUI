@@ -26,8 +26,12 @@
 
 package ar.com.dcbarrientos;
 
-import ar.com.dcbarrientos.db.Database;
-import ar.com.dcbarrientos.gui.Login;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
 import ar.com.dcbarrientos.gui.Ventana;
 
 /**
@@ -36,17 +40,42 @@ import ar.com.dcbarrientos.gui.Ventana;
  */
 public class Application {
 	public static final boolean DEBUG = false;
+	
+	static String language = "";
+	static String country = ""; 
+	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Login login = new Login();
-		Database database = login.showDialog();
-		if(database != null) {
-			Ventana ventana = new Ventana(database);
+		
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e) {
+			e.printStackTrace();
+		}
+		
+		Locale currentLocale = null;
+		if(language.length() > 0) {
+			currentLocale = new Locale(language, country);
+		}else {
+			currentLocale = Locale.getDefault();
+		}
+		ResourceBundle resource = ResourceBundle.getBundle("language.MySQLGui", currentLocale);
+		
+//		Login login = new Login(resource);
+//		Database database = login.showDialog();
+//		if(database != null) {
+			Ventana ventana = new Ventana( resource);
 			ventana.setVisible(true);
-		}else
-			System.out.println("Connection failed");
+//		}else
+//			System.out.println("Connection failed");
 	}
 
 }

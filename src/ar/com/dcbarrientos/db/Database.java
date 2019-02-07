@@ -28,9 +28,7 @@ package ar.com.dcbarrientos.db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import ar.com.dcbarrientos.Application;
 
@@ -49,8 +47,8 @@ public class Database {
 	private int port;
 	private String pass;
 	private Connection connection;
-	private Statement st;
-	private ResultSet result;
+	private String selectedDb = "";
+	private String selectedTable = "";
 	
 	private String errorMessage = "";
 	private int errorCode;
@@ -117,72 +115,41 @@ public class Database {
 		
 		return true;
 	}
-	
-	public boolean executeQuery(String sqlTxt) {
-		try {
-			st = connection.createStatement();
-			result = st.executeQuery(sqlTxt);
-		} catch (SQLException e) {
-			if(Application.DEBUG)
-				e.printStackTrace();
-			return false;
-		}
-		return true;
-	}
-	
-	public int getQueryCount() {
-		int c = 0;
-		if(result != null) {
-			try {
-				result.last();
-				c = result.getRow();
-				result.first();
-			} catch (SQLException e) {
-				if(Application.DEBUG)
-					e.printStackTrace();
-			}
-		}
-		
-		return c;
-	}
-	
+
 	public String getVersion() {
+		Query query = new Query(this);
 		String v = "";
-		try {
-			this.executeQuery("Select version();");
-			result.next();
-			v = result.getString(1);
-		} catch (SQLException e) {
-			if(Application.DEBUG)
-				e.printStackTrace();
-		}
+		query.executeQuery("Select version();");
+		query.next();
+		v = query.getString(1);
+		query.close();
 		
-		closeQuery();
 		return v;
 	}
-	
-	public boolean closeQuery() {
-		try {
-			result.close();
-			st.close();
-		} catch (SQLException e) {
-			if(Application.DEBUG)
-				e.printStackTrace();
-			return false;
-		}
-		
-		return true;
-	}
-	
-	public ResultSet getQueryResult() {
-		return result;
-	}
-	
+
 	public String getErrorMessage() {
 		return errorCode + ": " + errorMessage;
 	}
 	
 	public String getConnectionID() {
 		return user + "@" + host;
+	}
+	
+	public void setSelectedTable(String db, String table) {
+		this.selectedDb = db;
+		this.selectedTable = table;
+	}
+	
+	public void setSelectedDatabase(String db) {
+		this.selectedDb = db;
+		this.selectedTable = "";
+	}
+	
+	public String getSelectedDatabase() {
+		return selectedDb;
+	}
+	
+	public String getSelectedTable() {
+		return selectedTable;
 	}
 }
