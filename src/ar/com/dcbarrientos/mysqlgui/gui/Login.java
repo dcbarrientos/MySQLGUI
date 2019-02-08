@@ -24,7 +24,7 @@
  * Created on 1 feb. 2019, 18:07:50 
  */
 
-package ar.com.dcbarrientos.gui;
+package ar.com.dcbarrientos.mysqlgui.gui;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -42,7 +42,7 @@ import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.TitledBorder;
 
-import ar.com.dcbarrientos.db.Database;
+import ar.com.dcbarrientos.mysqlgui.db.Database;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>

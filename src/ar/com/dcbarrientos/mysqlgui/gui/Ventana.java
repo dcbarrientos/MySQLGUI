@@ -24,7 +24,7 @@
  * Created on 1 feb. 2019, 19:38:42 
  */
 
-package ar.com.dcbarrientos.gui;
+package ar.com.dcbarrientos.mysqlgui.gui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -41,7 +41,8 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 
-import ar.com.dcbarrientos.db.Database;
+import ar.com.dcbarrientos.mysqlgui.db.Database;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 

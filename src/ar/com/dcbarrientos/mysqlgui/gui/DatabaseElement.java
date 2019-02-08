@@ -24,13 +24,13 @@
  * Created on 1 feb. 2019, 21:46:49 
  */
 
-package ar.com.dcbarrientos.gui;
+package ar.com.dcbarrientos.mysqlgui.gui;
 
 import java.util.ResourceBundle;
 
 import javax.swing.JPanel;
 
-import ar.com.dcbarrientos.db.Database;
+import ar.com.dcbarrientos.mysqlgui.db.Database;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -42,7 +42,7 @@ public abstract class DatabaseElement extends JPanel{
 	protected Database database;
 	protected Ventana ventana;
 	protected ResourceBundle resource;
-	
+		
 	public DatabaseElement(Ventana ventana, Database database) {
 		this.ventana = ventana;
 		this.database = database;

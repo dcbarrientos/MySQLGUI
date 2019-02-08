@@ -24,7 +24,7 @@
  * Created on 6 feb. 2019, 17:24:10 
  */
 
-package ar.com.dcbarrientos.gui;
+package ar.com.dcbarrientos.mysqlgui.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -36,11 +36,11 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 
-import ar.com.dcbarrientos.db.Database;
-import ar.com.dcbarrientos.gui.tabs.DatabaseTab;
-import ar.com.dcbarrientos.gui.tabs.HostTab;
-import ar.com.dcbarrientos.gui.tabs.QueryTab;
-import ar.com.dcbarrientos.gui.tabs.TableTab;
+import ar.com.dcbarrientos.mysqlgui.db.Database;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.DatabaseTab;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.HostTab;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.QueryTab;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.TableTab;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>

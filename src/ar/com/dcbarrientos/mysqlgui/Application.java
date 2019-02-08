@@ -24,7 +24,7 @@
  * Created on 1 feb. 2019, 18:07:08 
  */
 
-package ar.com.dcbarrientos;
+package ar.com.dcbarrientos.mysqlgui;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -32,7 +32,7 @@ import java.util.ResourceBundle;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import ar.com.dcbarrientos.gui.Ventana;
+import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>

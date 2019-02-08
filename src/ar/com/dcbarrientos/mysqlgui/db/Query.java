@@ -24,13 +24,13 @@
  * Created on 5 feb. 2019, 19:21:33 
  */
 
-package ar.com.dcbarrientos.db;
+package ar.com.dcbarrientos.mysqlgui.db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import ar.com.dcbarrientos.Application;
+import ar.com.dcbarrientos.mysqlgui.Application;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>

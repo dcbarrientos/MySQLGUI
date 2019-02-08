@@ -24,7 +24,7 @@
  * Created on 1 feb. 2019, 19:58:34 
  */
 
-package ar.com.dcbarrientos.gui;
+package ar.com.dcbarrientos.mysqlgui.gui;
 
 import java.awt.BorderLayout;
 
@@ -37,8 +37,8 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import ar.com.dcbarrientos.db.Database;
-import ar.com.dcbarrientos.db.Query;
+import ar.com.dcbarrientos.mysqlgui.db.Database;
+import ar.com.dcbarrientos.mysqlgui.db.Query;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -153,6 +153,7 @@ public class DatabaseTree extends DatabaseElement {
 
 	@Override
 	public void refresh() {
+		//TODO: Refresh para datatree
 		ventana.refresh();
 	}
 

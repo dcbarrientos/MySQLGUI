@@ -24,11 +24,11 @@
  * Created on 6 feb. 2019, 18:53:20 
  */
 
-package ar.com.dcbarrientos.gui.tabs;
+package ar.com.dcbarrientos.mysqlgui.gui.tabs;
 
-import ar.com.dcbarrientos.db.Database;
-import ar.com.dcbarrientos.gui.DatabaseElement;
-import ar.com.dcbarrientos.gui.Ventana;
+import ar.com.dcbarrientos.mysqlgui.db.Database;
+import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
+import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
