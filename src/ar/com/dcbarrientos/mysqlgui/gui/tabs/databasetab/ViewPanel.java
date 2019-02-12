@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2019 Diego Barrientos <dc_barrientos@yahoo.com.ar>
+ *  Copyright (C) 2019 Luna
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
  */
 
 /** 
- * IndexesPanel.java
+ * ViewPanel.java
  *
  * Description:	    <Descripcion>
- * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
+ * @author			Luna
  *
- * Created on 12 feb. 2019, 10:54:23 
+ * Created on 12 feb. 2019, 16:46:00 
  */
 
 package ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab;
@@ -41,85 +41,70 @@ import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 import ar.com.dcbarrientos.mysqlgui.model.TableModel;
 
 /**
- * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
+ * @author Luna
  *
  */
-public class TriggersPanel extends DatabaseElement {
+public class ViewPanel extends DatabaseElement{
 	private static final long serialVersionUID = 1L;
 
-	public String title = resource.getString("TriggersPanel.title");
-
-	private final int COLUMN_COUNT = 10;
-
-	private String selectedDB = "";
-
+	public String title = resource.getString("ViewPanel.title");
+	private final int COLUMN_COUNT = 8;
+	
 	private JLabel titleLabel;
-	private JScrollPane scrollPanel;
+	private JScrollPane scrollPane;
 	private JTable table;
 	private TableModel tableModel;
-
+	
 	private String[] columnHeaders;
 	private Vector<String[]> datos;
-
-	public TriggersPanel(Ventana ventana, Database database) {
+	
+	public ViewPanel(Ventana ventana, Database database) {
 		super(ventana, database);
 
 		initComponents();
 	}
-
+	
 	private void initComponents() {
+		//TODO: CARGAR LOS NOMBRES DE LAS COLUMNAS
+		
 		setLayout(new BorderLayout());
-
-		columnHeaders = new String[COLUMN_COUNT];
-		for (int i = 0; i < COLUMN_COUNT; i++)
-			columnHeaders[i] = resource.getString("TriggersPanel.column" + (i + 1));
-
+		
 		titleLabel = new JLabel("New label");
 		titleLabel.setForeground(Color.WHITE);
 		titleLabel.setBackground(Color.BLACK);
 		titleLabel.setOpaque(true);
 		add(titleLabel, BorderLayout.NORTH);
-
-		scrollPanel = new JScrollPane();
-		add(scrollPanel, BorderLayout.CENTER);
-
+		
 		table = new JTable();
 		tableModel = new TableModel();
-		tableModel.setColumnHeaders(columnHeaders);
-		table.setModel(tableModel);
-
-		scrollPanel.setViewportView(table);
+		
+		
+		scrollPane = new JScrollPane();
+		scrollPane.setViewportView(table);
+		add(scrollPane, BorderLayout.CENTER);
+		
 	}
-
+	
 	private void loadData() {
 		Query query = new Query(database);
-		String sql = "SHOW TRIGGERS FROM `" + selectedDB + "`;";
+		//TODO: modificar la sql para que solo muestre las vistas
+		//TODO: corregir el panel de tablas para que solo muestre tablas.
+		
+		String sql = "SHOW PROCEDURE STATUS WHERE `Db`='" + selectedDB + "';";
 		query.executeQuery(sql);
-		ventana.addMessage(sql);
-
+		
 		datos = new Vector<String[]>();
-		String[] fila;
-		while (query.next()) {
-			fila = new String[COLUMN_COUNT];
-			fila[0] = query.getString("Trigger");
-			fila[1] = query.getString("event");
-			fila[2] = query.getString("table");
-			fila[3] = query.getString("timing");
-			fila[4] = query.getString("created");
-			fila[5] = query.getString("sql_mode");
-			fila[6] = query.getString("definer");
-			fila[7] = query.getString("character_set_client");
-			fila[8] = query.getString("collation_connection");
-			fila[9] = query.getString("database collation");
+		String[] fila = new String[COLUMN_COUNT];
+		
+		while(query.next()) {
+			
 			
 			datos.add(fila);
 		}
 		
-		tableModel.setData(datos);
-		
 		query.close();
 	}
-
+	
 	public void setSelectedDatabase(String databaseName) {
 		selectedDB = databaseName;
 		

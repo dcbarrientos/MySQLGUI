@@ -36,6 +36,7 @@ import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.TablesPanel;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.TriggersPanel;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.ViewPanel;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -60,6 +61,7 @@ public class DatabaseTab extends DatabaseElement {
 	private JTabbedPane tabPane;
 	private TablesPanel tablesPanel;
 	private TriggersPanel triggersPanel;
+	private ViewPanel viewPanel;
 
 	public DatabaseTab(Ventana ventana, Database database) {
 		super(ventana, database);
@@ -82,6 +84,10 @@ public class DatabaseTab extends DatabaseElement {
 		triggersPanel = new TriggersPanel(ventana, database);
 		tabList.add(triggersPanel);
 		tabPane.insertTab(triggersPanel.title, null, triggersPanel, null, TRIGGERS_INDEX);
+		
+		viewPanel = new ViewPanel(ventana, database);
+		tabList.add(viewPanel);
+		tabPane.insertTab(viewPanel.title, null, viewPanel, null, VIEWS_INDEX);
 	}
 
 	public void setSelectedDatabase(String databaseName) {
@@ -90,14 +96,12 @@ public class DatabaseTab extends DatabaseElement {
 		for(DatabaseElement element: tabList) {
 			element.setSelectedDatabase(selectedDB);
 		}
-		//tablesPanel.setSelectedDatabase(selectedDB);
 
 		refresh();
 	}
 
 	@Override
 	public void refresh() {
-		// loadData();
 		for (DatabaseElement element : tabList)
 			element.refresh();
 
