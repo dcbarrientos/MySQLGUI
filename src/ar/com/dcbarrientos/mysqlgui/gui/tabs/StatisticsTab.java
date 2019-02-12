@@ -27,129 +27,101 @@
 package ar.com.dcbarrientos.mysqlgui.gui.tabs;
 
 import java.awt.BorderLayout;
+import java.util.Vector;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.db.Query;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
+import ar.com.dcbarrientos.mysqlgui.model.TableModel;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class StatisticsTab extends DatabaseElement{
+public class StatisticsTab extends DatabaseElement {
 	private static final long serialVersionUID = 1L;
-	
 
 	public String title;
-	private final int COLUMN_COUNT = 4;
-	
-	private JTable statisticsTable;
-	private String[] columnHeader = new String[COLUMN_COUNT];
-	private String[][] datos;
 	public int statisticsCount = 0;
 	
+	private final int COLUMN_COUNT = 4;
+
+	private JTable statisticsTable;
+	private String[] columnHeaders;
+	private Vector<String[]> datos;
+	
+	private TableModel tableModel;
 
 	public StatisticsTab(Ventana ventana, Database database) {
 		super(ventana, database);
-		
+
 		title = resource.getString("StatisticsTab.title");
-		loadData();
 		initComponents();
 	}
-	
+
 	private void initComponents() {
 		setLayout(new BorderLayout(0, 0));
-		
+
 		JScrollPane scrollPane = new JScrollPane();
 		add(scrollPane, BorderLayout.CENTER);
-		
-		statisticsTable = new JTable();
-		statisticsTable.setModel(getModel());
-		scrollPane.setViewportView(statisticsTable);		
-	}
-	
-	private TableModel getModel() {
-		TableModel model = new AbstractTableModel() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			public String getColumnName(int column) {
-				return columnHeader[column];
-			}
-			
-			@Override
-			public Object getValueAt(int rowIndex, int columnIndex) {
-				return datos[rowIndex][columnIndex];
-			}
-			
-			@Override
-			public int getRowCount() {
-				return statisticsCount;
-			}
-			
-			@Override
-			public int getColumnCount() {
-				return COLUMN_COUNT;
-			}
-			
-			@Override
-			public boolean isCellEditable(int rowIndex, int columnIndex) {
-				return false;
-			}
-		};
+		statisticsTable = new JTable();
+		tableModel = new TableModel();
+		loadData();
+		statisticsTable.setModel(tableModel);
 		
-		return model;
+		scrollPane.setViewportView(statisticsTable);
 	}
-	
+
 	private boolean loadData() {
 		boolean r = false;
-		columnHeader[0] = resource.getString("StatisticsTab.commandtype");
-		columnHeader[1] = resource.getString("StatisticsTab.total_count");		
-		columnHeader[2] = resource.getString("StatisticsTab.average_hour");		
-		columnHeader[3] = resource.getString("StatisticsTab.percentage");		
+		columnHeaders = new String[COLUMN_COUNT];
+		columnHeaders[0] = resource.getString("StatisticsTab.commandtype");
+		columnHeaders[1] = resource.getString("StatisticsTab.total_count");
+		columnHeaders[2] = resource.getString("StatisticsTab.average_hour");
+		columnHeaders[3] = resource.getString("StatisticsTab.percentage");
+		tableModel.setColumnHeaders(columnHeaders);
 		
 		Query uQuery = new Query(database);
 		uQuery.executeQuery("SHOW GLOBAL STATUS LIKE 'Uptime';");
 		uQuery.next();
 		int uptime = uQuery.getInt(2);
 		uQuery.close();
-		
+
 		String sql = "SHOW GLOBAL STATUS LIKE 'Com\\_%';";
 		Query query = new Query(database);
 		query.executeQuery(sql);
-		statisticsCount = query.getRowCount();
-		datos = new String[statisticsCount][];
 		
-		int i = 0;
+		datos = new Vector<String[]>();
+
 		int total = 0;
-		while(query.next()) {
-			datos[i] = new String[COLUMN_COUNT];
-			datos[i][0] = query.getString(1);
-			datos[i][1] = query.getString(2);
-			total += Integer.parseInt(datos[i][1]);
-			datos[i][2] = String.format("%.2f", query.getDouble(2)/(uptime / 3600));
-			i++;
+		String[] fila;
+		while (query.next()) {
+			fila = new String[COLUMN_COUNT];
+			fila[0] = query.getString(1);
+			fila[1] = query.getString(2);
+			total += Integer.parseInt(fila[1]);
+			fila[2] = String.format("%.2f", query.getDouble(2) / (uptime / 3600));
+			datos.add(fila);
 		}
-		
-		for(int j = 0; j < datos.length; j++) {
-			datos[j][3] = String.format("%.2f", Double.parseDouble(datos[j][1]) * 100 / total) + "%";
+
+		for (int j = 0; j < datos.size(); j++) {
+			datos.get(j)[3] = String.format("%.2f", Double.parseDouble(datos.get(j)[1]) * 100 / total) + "%";
 		}
-		
-		java.util.Arrays.sort(datos, new java.util.Comparator<String[]>() {
+
+		datos.sort(new java.util.Comparator<String[]>() {
 			@Override
 			public int compare(String[] o1, String[] o2) {
 				return Integer.compare(Integer.parseInt(o2[1]), Integer.parseInt(o1[1]));
 			}
 		});
+
+		tableModel.setData(datos);
+		statisticsCount = datos.size();
 		
 		ventana.addMessage(sql + "\n");
 		query.close();
@@ -161,13 +133,12 @@ public class StatisticsTab extends DatabaseElement{
 		loadData();
 		statisticsTable.repaint();
 	}
-	
- 	private boolean mShown = false;
-  	
-	public void addNotify() 
-	{
+
+	private boolean mShown = false;
+
+	public void addNotify() {
 		super.addNotify();
-		
+
 		if (mShown)
 			return;
 

@@ -77,9 +77,6 @@ public class VariablesTab extends DatabaseElement{
 	
 	private TableModel getModel() {
 		TableModel model = new AbstractTableModel() {
-			/**
-			 * 
-			 */
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -110,6 +107,11 @@ public class VariablesTab extends DatabaseElement{
 			@Override
 			public boolean isCellEditable(int rowIndex, int columnIndex) {
 				return false;
+			}
+			
+			@Override
+			public void fireTableDataChanged() {
+				super.fireTableDataChanged();
 			}
 		};
 		

@@ -42,6 +42,8 @@ public abstract class DatabaseElement extends JPanel{
 	protected Database database;
 	protected Ventana ventana;
 	protected ResourceBundle resource;
+	
+	protected String selectedDB;
 		
 	public DatabaseElement(Ventana ventana, Database database) {
 		this.ventana = ventana;
@@ -49,5 +51,10 @@ public abstract class DatabaseElement extends JPanel{
 		this.resource = ventana.resource;
 	}
 	
+	public void setSelectedDatabase(String db) {
+		
+	}
+	
 	public abstract void refresh();
+	
 }

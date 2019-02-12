@@ -27,109 +27,78 @@
 package ar.com.dcbarrientos.mysqlgui.gui.tabs;
 
 import java.awt.BorderLayout;
+import java.util.Vector;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.db.Query;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
+import ar.com.dcbarrientos.mysqlgui.model.TableModel;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class StatusTab extends DatabaseElement{
+public class StatusTab extends DatabaseElement {
 	private static final long serialVersionUID = 1L;
-	
 
 	public String title;
 	private final int COLUMN_COUNT = 2;
-	
+
 	private JTable statusTable;
-	private String[] columnHeader = new String[COLUMN_COUNT];
-	private String[][] datos;
+	private String[] columnHeaders;
+	private Vector<String[]> datos;
+	private TableModel tableModel;
 	public int statusCount = 0;
-	
 
 	public StatusTab(Ventana ventana, Database database) {
 		super(ventana, database);
-		
+
 		title = resource.getString("StatusTab.title");
-		loadData();
 		initComponents();
 	}
-	
+
 	private void initComponents() {
 		setLayout(new BorderLayout(0, 0));
-		
+
 		JScrollPane scrollPane = new JScrollPane();
 		add(scrollPane, BorderLayout.CENTER);
-		
-		statusTable = new JTable();
-		statusTable.setModel(getModel());
-		scrollPane.setViewportView(statusTable);		
-	}
-	
-	private TableModel getModel() {
-		TableModel model = new AbstractTableModel() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			public String getColumnName(int column) {
-				return columnHeader[column];
-			}
-			
-			@Override
-			public Object getValueAt(int rowIndex, int columnIndex) {
-				return datos[rowIndex][columnIndex];
-			}
-			
-			@Override
-			public int getRowCount() {
-				return statusCount;
-			}
-			
-			@Override
-			public int getColumnCount() {
-				return COLUMN_COUNT;
-			}
-			
-			@Override
-			public boolean isCellEditable(int rowIndex, int columnIndex) {
-				return false;
-			}
-		};
+		statusTable = new JTable();
+		tableModel = new TableModel();
+		loadData();
+		statusTable.setModel(tableModel);
 		
-		return model;
+		scrollPane.setViewportView(statusTable);
 	}
-	
+
 	private boolean loadData() {
 		boolean r = false;
-		
-		 columnHeader[0] = resource.getString("StatusTab.variable");
-		 columnHeader[1] = resource.getString("StatusTab.value");		
-		
+		columnHeaders = new String[COLUMN_COUNT];
+		columnHeaders[0] = resource.getString("StatusTab.variable");
+		columnHeaders[1] = resource.getString("StatusTab.value");
+		tableModel.setColumnHeaders(columnHeaders);
+
 		String sql = "SHOW GLOBAL STATUS;";
 		Query query = new Query(database);
 		query.executeQuery(sql);
-		statusCount = query.getRowCount();
-		datos = new String[statusCount][];
 		
-		int i = 0;
-		while(query.next()) {
-			datos[i] = new String[2];
-			datos[i][0] = query.getString(1);
-			datos[i][1] = query.getString(2);
-			i++;
+		datos = new Vector<String[]>();
+		String[] fila;
+		
+		while (query.next()) {
+			fila = new String[COLUMN_COUNT];
+			fila[0] = query.getString(1);
+			fila[1] = query.getString(2);
+			datos.add(fila);
 		}
-		
+
+		statusCount = datos.size();
+		tableModel.setData(datos);
+
 		ventana.addMessage(sql + "\n");
 		query.close();
 		return r;
@@ -140,13 +109,12 @@ public class StatusTab extends DatabaseElement{
 		loadData();
 		statusTable.repaint();
 	}
-	
- 	private boolean mShown = false;
-  	
-	public void addNotify() 
-	{
+
+	private boolean mShown = false;
+
+	public void addNotify() {
 		super.addNotify();
-		
+
 		if (mShown)
 			return;
 

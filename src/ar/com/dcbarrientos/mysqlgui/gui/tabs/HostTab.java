@@ -53,6 +53,7 @@ public class HostTab extends DatabaseElement{
 	private StatisticsTab statistics;
 	private Vector<DatabaseElement> tabList;
 	
+	
 	public HostTab(Ventana ventana, Database database) {
 		super(ventana, database);
 		

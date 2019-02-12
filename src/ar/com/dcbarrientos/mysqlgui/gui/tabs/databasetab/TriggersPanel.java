@@ -16,19 +16,21 @@
  */
 
 /** 
- * VariablesTab.java
+ * IndexesPanel.java
  *
  * Description:	    <Descripcion>
  * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
- * Created on 4 feb. 2019, 11:47:53 
+ * Created on 12 feb. 2019, 10:54:23 
  */
 
-package ar.com.dcbarrientos.mysqlgui.gui.tabs;
+package ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.util.Vector;
 
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
@@ -42,93 +44,94 @@ import ar.com.dcbarrientos.mysqlgui.model.TableModel;
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class ProcessListTab extends DatabaseElement{
+public class TriggersPanel extends DatabaseElement {
 	private static final long serialVersionUID = 1L;
-	
-	
-	public String title;
-	public int processCount = 0;
-	
-	private final int COLUMN_COUNT = 8;
-	
-	private JTable processesTable;
-	private String[] columnHeaders;
-	private Vector<String[]> datos;
+
+	public String title = resource.getString("TriggersPanel.title");
+
+	private final int COLUMN_COUNT = 10;
+
+	private String selectedDB = "";
+
+	private JLabel titleLabel;
+	private JScrollPane scrollPanel;
+	private JTable table;
 	private TableModel tableModel;
 
-	public ProcessListTab(Ventana ventana, Database database) {
+	private String[] columnHeaders;
+	private Vector<String[]> datos;
+
+	public TriggersPanel(Ventana ventana, Database database) {
 		super(ventana, database);
-		
-		title = resource.getString("ProcessList.title");
+
 		initComponents();
 	}
-	
+
 	private void initComponents() {
-		setLayout(new BorderLayout(0, 0));
-		
-		JScrollPane scrollPane = new JScrollPane();
-		add(scrollPane, BorderLayout.CENTER);
-		
-		processesTable = new JTable();
-		
+		setLayout(new BorderLayout());
+
+		columnHeaders = new String[COLUMN_COUNT];
+		for (int i = 0; i < COLUMN_COUNT; i++)
+			columnHeaders[i] = resource.getString("TriggersPanel.column" + (i + 1));
+
+		titleLabel = new JLabel("New label");
+		titleLabel.setForeground(Color.WHITE);
+		titleLabel.setBackground(Color.BLACK);
+		titleLabel.setOpaque(true);
+		add(titleLabel, BorderLayout.NORTH);
+
+		scrollPanel = new JScrollPane();
+		add(scrollPanel, BorderLayout.CENTER);
+
+		table = new JTable();
 		tableModel = new TableModel();
-		loadData();
-		processesTable.setModel(tableModel);
-		scrollPane.setViewportView(processesTable);		
+		tableModel.setColumnHeaders(columnHeaders);
+		//loadData();
+		table.setModel(tableModel);
+
+		scrollPanel.setViewportView(table);
 	}
 
-	private boolean loadData() {
-		boolean r = false;
-		columnHeaders = new String[COLUMN_COUNT];
-		columnHeaders[0] = resource.getString("ProcessList.id"); 
-		columnHeaders[1] = resource.getString("ProcessList.user");
-		columnHeaders[2] = resource.getString("ProcessList.host");
-		columnHeaders[3] = resource.getString("ProcessList.db");
-		columnHeaders[4] = resource.getString("ProcessList.command");
-		columnHeaders[5] = resource.getString("ProcessList.time");
-		columnHeaders[6] = resource.getString("ProcessList.state");
-		columnHeaders[7] = resource.getString("ProcessList.info");	
-		tableModel.setColumnHeaders(columnHeaders);
-		
-		String sql = "SHOW PROCESSLIST";
+	private void loadData() {
 		Query query = new Query(database);
+		String sql = "SHOW TRIGGERS FROM `" + selectedDB + "`;";
 		query.executeQuery(sql);
-	
-		datos = new Vector<String[]>();
-		
-		String[] fila;
-		while(query.next()) {
-			fila = new String[COLUMN_COUNT];
-			for(int j = 0; j < COLUMN_COUNT; j++)
-				fila[j] = query.getString(j + 1);
+		ventana.addMessage(sql);
 
+		datos = new Vector<String[]>();
+		String[] fila;
+		while (query.next()) {
+			fila = new String[COLUMN_COUNT];
+			fila[0] = query.getString("Trigger");
+			fila[1] = query.getString("event");
+			fila[2] = query.getString("table");
+			fila[3] = query.getString("timing");
+			fila[4] = query.getString("created");
+			fila[5] = query.getString("sql_mode");
+			fila[6] = query.getString("definer");
+			fila[7] = query.getString("character_set_client");
+			fila[8] = query.getString("collation_connection");
+			fila[9] = query.getString("database collation");
+			
 			datos.add(fila);
 		}
 		
 		tableModel.setData(datos);
-		processCount = datos.size();
 		
 		query.close();
-		ventana.addMessage(sql + "\n");
-		return r;
+	}
+
+	public void setSelectedDatabase(String databaseName) {
+		selectedDB = databaseName;
+		
+		refresh();
 	}
 
 	@Override
 	public void refresh() {
 		loadData();
-		processesTable.repaint();
-	}
-	
- 	private boolean mShown = false;
-  	
-	public void addNotify() 
-	{
-		super.addNotify();
-		
-		if (mShown)
-			return;
-
-		mShown = true;
+		revalidate();
+		repaint();
 	}
 
 }

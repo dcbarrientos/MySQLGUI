@@ -27,6 +27,7 @@
 package ar.com.dcbarrientos.mysqlgui.gui.tabs;
 
 import java.awt.BorderLayout;
+import java.util.Vector;
 
 import javax.swing.JTabbedPane;
 
@@ -34,57 +35,72 @@ import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.TablesPanel;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.TriggersPanel;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class DatabaseTab extends DatabaseElement{
+public class DatabaseTab extends DatabaseElement {
 	private static final long serialVersionUID = 1L;
-	
+
 	public String title = resource.getString("DatabaseTab.title");
-	
-	private final int TABLES_INDEX 				= 0;
-	private final int INDEXES_INDEX				= 1;
-	private final int TRIGGERS_INDEX 			= 2;
-	private final int VIEWS_INDEX 				= 3;
-	private final int STOREDPROCEDURES_INDEX 	= 4;
-	private final int FUNCTIONS_INDEX 			= 5;
-	private final int GRANTS_INDEX 				= 6;
-	private final int EVENTS_INDEX 				= 7;
-	
+
+	private final int TABLES_INDEX = 0;
+	private final int TRIGGERS_INDEX = 1;
+	private final int VIEWS_INDEX = 2;
+	private final int STOREDPROCEDURES_INDEX = 3;
+	private final int FUNCTIONS_INDEX = 4;
+	private final int GRANTS_INDEX = 5;
+	private final int EVENTS_INDEX = 6;
+
 	private String selectedDB;
-	
+	private Vector<DatabaseElement> tabList;
+
 	private JTabbedPane tabPane;
-	private TablesPanel databasePanel;
-	
+	private TablesPanel tablesPanel;
+	private TriggersPanel triggersPanel;
+
 	public DatabaseTab(Ventana ventana, Database database) {
 		super(ventana, database);
-		
+
 		initComponents();
 	}
 
 	private void initComponents() {
 		setLayout(new BorderLayout(0, 0));
-		
+
+		tabList = new Vector<DatabaseElement>();
+
 		tabPane = new JTabbedPane();
 		add(tabPane, BorderLayout.CENTER);
+
+		tablesPanel = new TablesPanel(ventana, database);
+		tabList.add(tablesPanel);
+		tabPane.insertTab(resource.getString("TablesPanel.title"), null, tablesPanel, null, TABLES_INDEX);
 		
-		databasePanel = new TablesPanel(ventana, database);
-		tabPane.insertTab(resource.getString("TablesPanel.title"), null, databasePanel, null, TABLES_INDEX);
+		triggersPanel = new TriggersPanel(ventana, database);
+		tabList.add(triggersPanel);
+		tabPane.insertTab(triggersPanel.title, null, triggersPanel, null, TRIGGERS_INDEX);
 	}
-	
+
 	public void setSelectedDatabase(String databaseName) {
 		this.selectedDB = databaseName;
-		
-		databasePanel.setSelectedDatabase(selectedDB);
-		
+
+		for(DatabaseElement element: tabList) {
+			element.setSelectedDatabase(selectedDB);
+		}
+		//tablesPanel.setSelectedDatabase(selectedDB);
+
 		refresh();
 	}
 
 	@Override
 	public void refresh() {
-		//loadData();
+		// loadData();
+		for (DatabaseElement element : tabList)
+			element.refresh();
+
 		this.revalidate();
 		this.repaint();
 	}
