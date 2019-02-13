@@ -75,8 +75,7 @@ public class StatusTab extends DatabaseElement {
 		scrollPane.setViewportView(statusTable);
 	}
 
-	private boolean loadData() {
-		boolean r = false;
+	protected void loadData() {
 		columnHeaders = new String[COLUMN_COUNT];
 		columnHeaders[0] = resource.getString("StatusTab.variable");
 		columnHeaders[1] = resource.getString("StatusTab.value");
@@ -101,7 +100,6 @@ public class StatusTab extends DatabaseElement {
 
 		ventana.addMessage(sql + "\n");
 		query.close();
-		return r;
 	}
 
 	@Override

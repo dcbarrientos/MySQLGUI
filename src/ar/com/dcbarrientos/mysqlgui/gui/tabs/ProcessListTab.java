@@ -77,8 +77,7 @@ public class ProcessListTab extends DatabaseElement{
 		scrollPane.setViewportView(processesTable);		
 	}
 
-	private boolean loadData() {
-		boolean r = false;
+	protected void loadData() {
 		columnHeaders = new String[COLUMN_COUNT];
 		columnHeaders[0] = resource.getString("ProcessList.id"); 
 		columnHeaders[1] = resource.getString("ProcessList.user");
@@ -110,7 +109,6 @@ public class ProcessListTab extends DatabaseElement{
 		
 		query.close();
 		ventana.addMessage(sql + "\n");
-		return r;
 	}
 
 	@Override

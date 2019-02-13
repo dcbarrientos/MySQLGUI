@@ -118,8 +118,7 @@ public class VariablesTab extends DatabaseElement{
 		return model;
 	}
 	
-	private boolean loadData() {
-		boolean r = false;
+	protected void loadData() {
 		
 		columnHeader[0] = resource.getString("Variables.variable");
 		columnHeader[1] = resource.getString("Variables.session");
@@ -162,7 +161,6 @@ public class VariablesTab extends DatabaseElement{
 		ventana.addMessage(sql2 + "\n");
 		query.close();
 		query2.close();
-		return r;
 	}
 
 	@Override

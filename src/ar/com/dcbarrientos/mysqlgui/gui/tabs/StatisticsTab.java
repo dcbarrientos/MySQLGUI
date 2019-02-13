@@ -77,8 +77,7 @@ public class StatisticsTab extends DatabaseElement {
 		scrollPane.setViewportView(statisticsTable);
 	}
 
-	private boolean loadData() {
-		boolean r = false;
+	protected void loadData() {
 		columnHeaders = new String[COLUMN_COUNT];
 		columnHeaders[0] = resource.getString("StatisticsTab.commandtype");
 		columnHeaders[1] = resource.getString("StatisticsTab.total_count");
@@ -125,7 +124,6 @@ public class StatisticsTab extends DatabaseElement {
 		
 		ventana.addMessage(sql + "\n");
 		query.close();
-		return r;
 	}
 
 	@Override

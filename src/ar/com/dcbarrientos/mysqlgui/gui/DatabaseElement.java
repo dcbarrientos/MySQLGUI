@@ -52,9 +52,18 @@ public abstract class DatabaseElement extends JPanel{
 	}
 	
 	public void setSelectedDatabase(String db) {
+		selectedDB = db;
 		
+		refresh();
 	}
 	
-	public abstract void refresh();
+	public void refresh() {
+		loadData();
+		revalidate();
+		repaint();
+	}
 	
+	protected void loadData() {
+		
+	}
 }

@@ -98,7 +98,7 @@ public class DatabaseTree extends DatabaseElement {
 		add(tree, BorderLayout.CENTER);
 	}
 
-	private void loadData() {
+	protected void loadData() {
 		id = new DefaultMutableTreeNode(database.getConnectionID());
 		treeModel = new DefaultTreeModel(id);
 

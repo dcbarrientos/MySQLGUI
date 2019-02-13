@@ -55,7 +55,7 @@ public class DatabaseTab extends DatabaseElement {
 	private final int GRANTS_INDEX = 5;
 	private final int EVENTS_INDEX = 6;
 
-	private String selectedDB;
+	//private String selectedDB;
 	private Vector<DatabaseElement> tabList;
 
 	private JTabbedPane tabPane;
@@ -97,7 +97,6 @@ public class DatabaseTab extends DatabaseElement {
 			element.setSelectedDatabase(selectedDB);
 		}
 
-		refresh();
 	}
 
 	@Override

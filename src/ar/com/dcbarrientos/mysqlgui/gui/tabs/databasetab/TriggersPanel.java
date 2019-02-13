@@ -51,7 +51,7 @@ public class TriggersPanel extends DatabaseElement {
 
 	private final int COLUMN_COUNT = 10;
 
-	private String selectedDB = "";
+	//private String selectedDB = "";
 
 	private JLabel titleLabel;
 	private JScrollPane scrollPanel;
@@ -91,11 +91,11 @@ public class TriggersPanel extends DatabaseElement {
 		scrollPanel.setViewportView(table);
 	}
 
-	private void loadData() {
+	protected void loadData() {
 		Query query = new Query(database);
 		String sql = "SHOW TRIGGERS FROM `" + selectedDB + "`;";
 		query.executeQuery(sql);
-		ventana.addMessage(sql);
+		ventana.addMessage(sql + "\n");
 
 		datos = new Vector<String[]>();
 		String[] fila;
@@ -119,13 +119,13 @@ public class TriggersPanel extends DatabaseElement {
 		
 		query.close();
 	}
-
+/*
 	public void setSelectedDatabase(String databaseName) {
 		selectedDB = databaseName;
 		
 		refresh();
 	}
-
+*/
 	@Override
 	public void refresh() {
 		loadData();

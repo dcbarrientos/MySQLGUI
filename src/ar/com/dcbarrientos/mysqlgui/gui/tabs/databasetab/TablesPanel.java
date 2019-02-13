@@ -59,7 +59,7 @@ public class TablesPanel extends DatabaseElement {
 	private String[] columnHeaders;
 	private Vector<String[]> datos;
 
-	private String selectedDB;
+	//private String selectedDB;
 
 	private JLabel titleLabel;
 	private JToolBar toolBar;
@@ -196,7 +196,7 @@ public class TablesPanel extends DatabaseElement {
 
 	}
 
-	private void loadData() {
+	protected void loadData() {
 
 		// TODO: hacer un procedimiento por consulta, las columnas tienen nombres
 		// distintos.
@@ -239,12 +239,13 @@ public class TablesPanel extends DatabaseElement {
 		query.close();
 
 	}
-
+/*
 	public void setSelectedDatabase(String databaseName) {
 		this.selectedDB = databaseName;
 		refresh();
 	}
-
+*/
+	/*
 	@Override
 	public void refresh() {
 		loadData();
@@ -252,5 +253,5 @@ public class TablesPanel extends DatabaseElement {
 		// model.fireTableDataChanged();
 		revalidate();
 		repaint();
-	}
+	}*/
 }

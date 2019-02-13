@@ -148,4 +148,5 @@ public class Query {
 		
 		return 0;
 	}
+	
 }

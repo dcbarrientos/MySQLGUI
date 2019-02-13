@@ -48,7 +48,7 @@ public class ViewPanel extends DatabaseElement{
 	private static final long serialVersionUID = 1L;
 
 	public String title = resource.getString("ViewPanel.title");
-	private final int COLUMN_COUNT = 8;
+	private final int COLUMN_COUNT = 1;
 	
 	private JLabel titleLabel;
 	private JScrollPane scrollPane;
@@ -65,7 +65,8 @@ public class ViewPanel extends DatabaseElement{
 	}
 	
 	private void initComponents() {
-		//TODO: CARGAR LOS NOMBRES DE LAS COLUMNAS
+		columnHeaders = new String[COLUMN_COUNT];
+		columnHeaders[0] = resource.getString("ViewPanel.header1");
 		
 		setLayout(new BorderLayout());
 		
@@ -77,7 +78,8 @@ public class ViewPanel extends DatabaseElement{
 		
 		table = new JTable();
 		tableModel = new TableModel();
-		
+		tableModel.setColumnHeaders(columnHeaders);
+		table.setModel(tableModel);
 		
 		scrollPane = new JScrollPane();
 		scrollPane.setViewportView(table);
@@ -85,37 +87,38 @@ public class ViewPanel extends DatabaseElement{
 		
 	}
 	
-	private void loadData() {
+	protected void loadData() {
 		Query query = new Query(database);
-		//TODO: modificar la sql para que solo muestre las vistas
 		//TODO: corregir el panel de tablas para que solo muestre tablas.
 		
-		String sql = "SHOW PROCEDURE STATUS WHERE `Db`='" + selectedDB + "';";
+		String sql = "SHOW FULL TABLES IN " + selectedDB + " WHERE TABLE_TYPE LIKE 'VIEW';";
 		query.executeQuery(sql);
-		
+		ventana.addMessage(sql + "\n");
 		datos = new Vector<String[]>();
-		String[] fila = new String[COLUMN_COUNT];
 		
 		while(query.next()) {
-			
+			String[] fila = {query.getString(1)};
 			
 			datos.add(fila);
 		}
 		
+		tableModel.setData(datos);
 		query.close();
 	}
-	
+	/*
 	public void setSelectedDatabase(String databaseName) {
 		selectedDB = databaseName;
 		
 		refresh();
 	}
-
+*/
+	/*
 	@Override
 	public void refresh() {
 		loadData();
+		
 		revalidate();
 		repaint();
 	}
-
+*/
 }
