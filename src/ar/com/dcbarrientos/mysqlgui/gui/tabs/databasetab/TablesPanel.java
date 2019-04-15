@@ -35,6 +35,7 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
@@ -42,9 +43,14 @@ import javax.swing.SwingConstants;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.db.Query;
+import ar.com.dcbarrientos.mysqlgui.gui.CellRenderer;
+import ar.com.dcbarrientos.mysqlgui.gui.CopyTable;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
+import ar.com.dcbarrientos.mysqlgui.gui.EmptyTable;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.TableTab;
 import ar.com.dcbarrientos.mysqlgui.model.TableModel;
+import ar.com.dcbarrientos.mysqlgui.tools.Tools;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -55,23 +61,28 @@ public class TablesPanel extends DatabaseElement {
 
 	public String title = resource.getString("DatabaseTab.title");
 
-	private final int COLUMN_COUNT = 8;
+	private final int COLUMN_COUNT = 17;
+	private final int NAME_COLUMN_INDEX = 0;
+
 	private String[] columnHeaders;
-	private Vector<String[]> datos;
+	private Vector<Object[]> datos;
 
-	//private String selectedDB;
-
+	// private String selectedDB;
+ 
 	private JLabel titleLabel;
 	private JToolBar toolBar;
 	private JButton jbViewData;
 	private JButton jbShowTableProperties;
-	private JButton jbInsertRecord;
+	private JButton jbCreateTable;
+	private JButton jbEditTable;
 	private JButton jbEmptyTable;
 	private JButton jbDropTable;
 	private JButton jbCopyTable;
 	private JScrollPane scrollPane;
 	private JTable table;
 	private TableModel model;
+
+	private CellRenderer cellRenderer;
 
 	public TablesPanel(Ventana ventana, Database database) {
 		super(ventana, database);
@@ -116,15 +127,25 @@ public class TablesPanel extends DatabaseElement {
 		});
 		toolBar.add(jbShowTableProperties);
 
-		jbInsertRecord = new JButton();
-		jbInsertRecord.setIcon(new ImageIcon(getClass().getResource("/images/InsertRecord.gif")));
-		jbInsertRecord.setToolTipText(resource.getString("DatabaseTab.toolbar.insertrecord"));
-		jbInsertRecord.addMouseListener(new MouseAdapter() {
+		jbCreateTable = new JButton();
+		jbCreateTable.setIcon(new ImageIcon(getClass().getResource("/images/InsertRecord.gif")));
+		jbCreateTable.setToolTipText(resource.getString("DatabaseTab.toolbar.createtable"));
+		jbCreateTable.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				jbInsertRecordMouseClicked(e);
 			}
 		});
-		toolBar.add(jbInsertRecord);
+		toolBar.add(jbCreateTable);
+
+		jbEditTable = new JButton();
+		jbEditTable.setIcon(new ImageIcon(getClass().getResource("/images/InsertRecord.gif")));
+		jbEditTable.setToolTipText(resource.getString("DatabaseTab.toolbar.edittable"));
+		jbEditTable.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				jbInsertRecordMouseClicked(e);
+			}
+		});
+		toolBar.add(jbEditTable);
 
 		jbEmptyTable = new JButton();
 		jbEmptyTable.setIcon(new ImageIcon(getClass().getResource("/images/Emptytable.gif")));
@@ -163,95 +184,124 @@ public class TablesPanel extends DatabaseElement {
 		model = new TableModel();
 		model.setColumnHeaders(columnHeaders);
 		table.setModel(model);
+
+		cellRenderer = new CellRenderer();
+		table.setDefaultRenderer(Object.class, cellRenderer);
 		scrollPane.setViewportView(table);
 	}
 
 	protected void jbCopyTableMouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
+		if (isTableSelected()) {
 
+			CopyTable copyTable = new CopyTable(ventana, database, selectedDB, getSelectedTableName());
+			if (copyTable.showDialog()) {
+				ventana.refresh();
+			}
+		}
 	}
 
 	protected void jbDropTableMouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-
+		if (isTableSelected()) {
+			String msg = String.format(resource.getString("DropTable.warning"), selectedDB, getSelectedTableName());
+			if (JOptionPane.showConfirmDialog(null, msg, resource.getString("DropTable.title"),
+					JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+				
+				Query query = new Query(database);
+				
+				String sql = String.format(Query.SQL_DROP_TABLE, selectedDB, getSelectedTableName());
+				ventana.addMessage(sql);
+				if (query.executeUpdate(sql) < 0) {
+					JOptionPane.showMessageDialog(null, query.errorCode + ": " + query.errorMsg,
+							resource.getString("DropTable.title"), JOptionPane.ERROR_MESSAGE);
+				}else {
+					ventana.refresh();
+				}
+				
+				query.close();
+			}
+		}
 	}
 
 	protected void jbEmptyTableMouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-
+		if (isTableSelected()) {
+			EmptyTable et = new EmptyTable(ventana, database, selectedDB, getSelectedTableName());
+			if (et.showDialog())
+				ventana.refresh();
+		}
 	}
 
 	protected void jbInsertRecordMouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
+		ventana.addMessage("Falta hacer");
 
 	}
 
 	protected void jbShowTablePropertiesMouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
+		if (isTableSelected()) {
 
+			String tableName = getSelectedTableName();
+			ventana.setSelectedTable(selectedDB, tableName);
+			ventana.selectTableTab(TableTab.COLUMNS_INDEX);
+		}
 	}
 
 	protected void jbViewDataMouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
+		if (isTableSelected()) {
 
+			String tableName = getSelectedTableName();
+			ventana.setSelectedTable(selectedDB, tableName);
+			ventana.selectTableTab(TableTab.DATA_INDEX);
+		}
+	}
+
+	private String getSelectedTableName() {
+		return (String) table.getValueAt(table.getSelectedRow(), NAME_COLUMN_INDEX);
 	}
 
 	protected void loadData() {
-
-		// TODO: hacer un procedimiento por consulta, las columnas tienen nombres
-		// distintos.
-
-		ejecutarConsulta("SHOW TABLE STATUS FROM `" + selectedDB + "`", resource.getString("DatabaseTab.tipo.Tabla"));
-		// ejecutarConsulta("SHOW FUNCTION STATUS WHERE `Db`= '"+ selectedDB + "'",
-		// resource.getString("DatabaseTab.tipo.Function"));
-		// ejecutarConsulta("SHOW PROCEDURE STATUS WHERE `Db`='"+ selectedDB + "'",
-		// resource.getString("DatabaseTab.tipo.Procedure"));
-		// ejecutarConsulta("SHOW TRIGGERS FROM `"+ selectedDB + "`;",
-		// resource.getString("DatabaseTab.tipo.Trigger"));
-	}
-
-	private void ejecutarConsulta(String sql, String type) {
+		String sql = "SHOW TABLE STATUS FROM `" + selectedDB + "`;";
 		Query query = new Query(database);
 		query.executeQuery(sql);
-		ventana.addMessage(sql + ";\n");
+		ventana.addMessage(sql);
 
-		datos = new Vector<String[]>();
+		Query query2 = new Query(database);
+		query2.executeQuery("SHOW FULL TABLES IN " + selectedDB + " WHERE TABLE_TYPE LIKE 'VIEW';");
+		Vector<Object[]> viewsList = query2.getDataAsObjectVector();
+		query2.close();
+
+		datos = new Vector<Object[]>();
 
 		String[] fila;
 		while (query.next()) {
-			fila = new String[COLUMN_COUNT];
-			fila[0] = query.getString("Name");
-			fila[1] = query.getString("Rows");
-			fila[2] = Integer.toString(query.getInt("Data_length") + query.getInt("Index_length"));
-			fila[3] = query.getString("Create_time");
-			fila[4] = query.getString("Update_time");
-			fila[5] = query.getString("Engine");
-			fila[6] = query.getString("Comment");
-			if (type.equals(resource.getString("DatabaseTab.tipo.Tabla")) && fila[6].equals("VIEW")) {
-				fila[7] = resource.getString("DatabaseTab.tipo.View");
-			} else {
-				fila[7] = type;
+			if (getIndexOf(viewsList, query.getString("Name"), 0) < 0) {
+				fila = new String[COLUMN_COUNT];
+
+				for (int i = 0; i < COLUMN_COUNT; i++) {
+					if (i > 5 && i < 10)
+						fila[i] = Tools.convertUnits(query.getDouble(i + 1));
+					else
+						fila[i] = query.getString(i + 1);
+				}
+
+				datos.add(fila);
 			}
-			datos.add(fila);
 		}
 
 		model.setData(datos);
 		query.close();
-
 	}
-/*
-	public void setSelectedDatabase(String databaseName) {
-		this.selectedDB = databaseName;
-		refresh();
-	}
-*/
-	/*
-	@Override
-	public void refresh() {
-		loadData();
 
-		// model.fireTableDataChanged();
-		revalidate();
-		repaint();
-	}*/
+	private boolean isTableSelected() {
+		if (table.getSelectedRow() >= 0 && table.getSelectedColumn() >= 0)
+			return true;
+		return false;
+	}
+
+	private int getIndexOf(Vector<Object[]> src, String text, int column) {
+		for (int i = 0; i < src.size(); i++) {
+			if (src.get(i)[column].equals(text))
+				return i;
+		}
+		return -1;
+	}
 }

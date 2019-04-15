@@ -24,7 +24,7 @@
  * Created on 4 feb. 2019, 11:47:53 
  */
 
-package ar.com.dcbarrientos.mysqlgui.gui.tabs;
+package ar.com.dcbarrientos.mysqlgui.gui.tabs.host;
 
 import java.awt.BorderLayout;
 import java.util.Vector;
@@ -50,7 +50,7 @@ public class StatusTab extends DatabaseElement {
 
 	private JTable statusTable;
 	private String[] columnHeaders;
-	private Vector<String[]> datos;
+	private Vector<Object[]> datos;
 	private TableModel tableModel;
 	public int statusCount = 0;
 
@@ -85,7 +85,7 @@ public class StatusTab extends DatabaseElement {
 		Query query = new Query(database);
 		query.executeQuery(sql);
 		
-		datos = new Vector<String[]>();
+		datos = new Vector<Object[]>();
 		String[] fila;
 		
 		while (query.next()) {
@@ -98,7 +98,7 @@ public class StatusTab extends DatabaseElement {
 		statusCount = datos.size();
 		tableModel.setData(datos);
 
-		ventana.addMessage(sql + "\n");
+		ventana.addMessage(sql);
 		query.close();
 	}
 

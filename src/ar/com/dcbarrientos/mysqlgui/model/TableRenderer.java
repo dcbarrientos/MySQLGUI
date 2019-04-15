@@ -16,62 +16,37 @@
  */
 
 /** 
- * DatabaseElement.java
+ * TableRenderer.java
  *
  * Description:	    <Descripcion>
  * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
- * Created on 1 feb. 2019, 21:46:49 
+ * Created on 21 mar. 2019, 11:38:07 
  */
 
-package ar.com.dcbarrientos.mysqlgui.gui;
+package ar.com.dcbarrientos.mysqlgui.model;
 
-import java.util.ResourceBundle;
+import java.awt.Component;
 
-import javax.swing.JPanel;
-
-import ar.com.dcbarrientos.mysqlgui.db.Database;
+import javax.swing.JLabel;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public abstract class DatabaseElement extends JPanel{
+public class TableRenderer extends DefaultTableCellRenderer{
 	private static final long serialVersionUID = 1L;
-	
-	protected Database database;
-	protected Ventana ventana;
-	protected ResourceBundle resource;
-	
-	protected String selectedDB;
-	protected String selectedTable;
+
+	@Override
+	public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+		if(value instanceof JLabel) {
+			return (JLabel) value;
+		}
 		
-	public DatabaseElement(Ventana ventana, Database database) {
-		this.ventana = ventana;
-		this.database = database;
-		this.resource = ventana.resource;
-	}
-	
-	public void setSelectedDatabase(String db) {
-		selectedDB = db;
-		
-		refresh();
-	}
-	
-	public void setSelectedTable(String db, String table) {
-		setSelectedDatabase(db);
-		selectedTable = table;
-		
-		refresh();
-	}
-	
-	public void refresh() {
-		loadData();
-		revalidate();
-		repaint();
-	}
-	
-	protected void loadData() {
-		
+		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			
 	}
 }

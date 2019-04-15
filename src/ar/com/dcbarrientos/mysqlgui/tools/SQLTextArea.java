@@ -1,0 +1,377 @@
+/*
+ *  Copyright (C) 2019 Diego Barrientos <dc_barrientos@yahoo.com.ar>
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** 
+ * SQLTextArea.java
+ *
+ * Description:	    <Descripcion>
+ * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
+ *
+ * Created on 3 mar. 2019, 10:55:18 
+ */
+
+package ar.com.dcbarrientos.mysqlgui.tools;
+
+import org.fife.ui.autocomplete.AutoCompletion;
+import org.fife.ui.autocomplete.BasicCompletion;
+import org.fife.ui.autocomplete.CompletionProvider;
+import org.fife.ui.autocomplete.DefaultCompletionProvider;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+
+/**
+ * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
+ *
+ */
+public class SQLTextArea extends RSyntaxTextArea{
+	private static final long serialVersionUID = 1L;
+	
+	public SQLTextArea() {
+		setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
+		
+		CompletionProvider cp = createCompletionProvider();
+		
+		AutoCompletion ac = new AutoCompletion(cp);
+		ac.setAutoCompleteEnabled(true);
+		ac.setAutoActivationEnabled(true);
+		
+		ac.install(this);
+		
+	}
+
+	private CompletionProvider createCompletionProvider() {
+		DefaultCompletionProvider provider = new DefaultCompletionProvider();
+		provider.addCompletion(new BasicCompletion(provider, "use"));
+		provider.addCompletion(new BasicCompletion(provider, "select"));
+		
+		return provider;
+	}
+}
+
+/*
+ * ADD
+ALL
+ALTER
+ANALYZE
+AND
+AS
+ASC
+AUTO_INCREMENT
+BDB
+BERKELEYDB
+BETWEEN
+BIGINT
+BINARY
+BLOB
+BOTH
+BTREE
+BY
+CASCADE
+CASE
+CHANGE
+CHAR
+CHARACTER
+CHECK
+COLLATE
+COLUMN
+COLUMNS
+CONSTRAINT
+CREATE
+CROSS
+CURRENT_DATE
+CURRENT_TIME
+CURRENT_TIMESTAMP
+DATABASE
+DATABASES
+DAY_HOUR
+DAY_MINUTE
+DAY_SECOND
+DEC
+DECIMAL
+DEFAULT
+DELAYED
+DELETE
+DESC
+DESCRIBE
+DISTINCT
+DISTINCTROW
+DIV
+DOUBLE
+DROP
+ELSE
+ENCLOSED
+ERRORS
+ESCAPED
+EXISTS
+EXPLAIN
+FALSE
+FIELDS
+FLOAT
+FOR
+FORCE
+FOREIGN
+FROM
+FULLTEXT
+FUNCTION
+GEOMETRY
+GRANT
+GROUP
+HASH
+HAVING
+HELP
+HIGH_PRIORITY
+HOUR_MINUTE
+HOUR_SECOND
+IF
+IGNORE
+IN
+INDEX
+INFILE
+INNER
+INNODB
+INSERT
+INT
+INTEGER
+INTERVAL
+INTO
+IS
+JOIN
+KEY
+KEYS
+KILL
+LEADING
+LEFT
+LIKE
+LIMIT
+LINES
+LOAD
+LOCALTIME
+LOCALTIMESTAMP
+LOCK
+LONG
+LONGBLOB
+LONGTEXT
+LOW_PRIORITY
+MASTER_SERVER_ID
+MATCH
+MEDIUMBLOB
+MEDIUMINT
+MEDIUMTEXT
+MIDDLEINT
+MINUTE_SECOND
+MOD
+MRG_MYISAM
+NATURAL
+NOT
+NULL
+NUMERIC
+ON
+OPTIMIZE
+OPTION
+OPTIONALLY
+OR
+ORDER
+OUTER
+OUTFILE
+PRECISION
+PRIMARY
+PRIVILEGES
+PROCEDURE
+PURGE
+READ
+REAL
+REFERENCES
+REGEXP
+RENAME
+REPLACE
+REQUIRE
+RESTRICT
+RETURNS
+REVOKE
+RIGHT
+RLIKE
+RTREE
+SELECT
+SET
+SHOW
+SMALLINT
+SOME
+SONAME
+SPATIAL
+SQL_BIG_RESULT
+SQL_CALC_FOUND_ROWS
+SQL_SMALL_RESULT
+SSL
+STARTING
+STRAIGHT_JOIN
+STRIPED
+TABLE
+TABLES
+TERMINATED
+THEN
+TINYBLOB
+TINYINT
+TINYTEXT
+TO
+TRAILING
+TRUE
+TYPES
+UNION
+UNIQUE
+UNLOCK
+UNSIGNED
+UPDATE
+USAGE
+USE
+USER_RESOURCES
+USING
+VALUES
+VARBINARY
+VARCHAR
+VARCHARACTER
+VARYING
+WARNINGS
+WHEN
+WHERE
+WITH
+WRITE
+XOR
+YEAR_MONTH
+ZEROFILL*/
+
+
+/*ANALYZE
+AUTO_INCREMENT
+BDB
+BERKELEYDB
+BIGINT
+BLOB
+BOTH
+BTREE
+CASCADE
+CASE
+CHANGE
+CHECK
+COLLATE
+COLUMNS
+CROSS
+CURRENT_DATE
+CURRENT_TIME
+CURRENT_TIMESTAMP
+DATABASES
+DAY_HOUR
+DAY_MINUTE
+DAY_SECOND
+DEC
+DECIMAL
+DEFAULT
+DELAYED
+DESCRIBE
+DIV
+ELSE
+ENCLOSED
+ERRORS
+ESCAPED
+EXPLAIN
+FALSE
+FIELDS
+FOR
+FORCE
+FULLTEXT
+FUNCTION
+GEOMETRY
+GRANT
+HASH
+HELP
+HIGH_PRIORITY
+HOUR_MINUTE
+HOUR_SECOND
+IF
+INFILE
+INNODB
+INTERVAL
+KEYS
+KILL
+LEADING
+LIMIT
+LINES
+LOAD
+LOCALTIME
+LOCALTIMESTAMP
+LOCK
+LONGBLOB
+LOW_PRIORITY
+MASTER_SERVER_ID
+MATCH
+MEDIUMBLOB
+MEDIUMINT
+MEDIUMTEXT
+MIDDLEINT
+MINUTE_SECOND
+MRG_MYISAM
+NATURAL
+OPTIMIZE
+OPTIONALLY
+OUTFILE
+PRECISION
+PRIVILEGES
+PROCEDURE
+PURGE
+READ
+REGEXP
+RENAME
+REPLACE
+REQUIRE
+RESTRICT
+RETURNS
+REVOKE
+RLIKE
+RTREE
+SHOW
+SONAME
+SPATIAL
+SQL_BIG_RESULT
+SQL_CALC_FOUND_ROWS
+SQL_SMALL_RESULT
+SSL
+STARTING
+STRAIGHT_JOIN
+STRIPED
+TABLES
+TERMINATED
+THEN
+TINYBLOB
+TINYINT
+TINYTEXT
+TO
+TRAILING
+TRUE
+TYPES
+UNLOCK
+UNSIGNED
+USAGE
+USE
+USER_RESOURCES
+USING
+VARCHARACTER
+VARYING
+WARNINGS
+WHEN
+WRITE
+XOR
+YEAR_MONTH
+ZEROFILL*/

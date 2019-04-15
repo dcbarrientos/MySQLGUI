@@ -39,7 +39,7 @@ import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
  *
  */
 public class Application {
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 	
 	static String language = "";
 	static String country = ""; 
@@ -48,7 +48,6 @@ public class Application {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException e) {

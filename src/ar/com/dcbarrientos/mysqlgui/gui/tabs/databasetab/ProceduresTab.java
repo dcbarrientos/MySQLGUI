@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2019 Luna
+ *  Copyright (C) 2019 Diego Barrientos <dc_barrientos@yahoo.com.ar>
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
  */
 
 /** 
- * ViewPanel.java
+ * ProceduresTab.java
  *
  * Description:	    <Descripcion>
- * @author			Luna
+ * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
- * Created on 12 feb. 2019, 16:46:00 
+ * Created on 14 feb. 2019, 11:53:35 
  */
 
 package ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab;
@@ -42,43 +42,48 @@ import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 import ar.com.dcbarrientos.mysqlgui.model.TableModel;
 
 /**
- * @author Luna
+ * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class ViewPanel extends DatabaseElement{
+public class ProceduresTab extends DatabaseElement {
 	private static final long serialVersionUID = 1L;
 
-	public String title = resource.getString("ViewPanel.title");
-	private final int COLUMN_COUNT = 1;
-	
+	public String title = resource.getString("ProceduresTab.title");
+
+	private final int COLUMN_COUNT = 10;
+
 	private JLabel titleLabel;
-	private JScrollPane scrollPane;
+	private JScrollPane scrollPanel;
 	private JTable table;
 	private TableModel tableModel;
-	
+
 	private String[] columnHeaders;
 	private Vector<Object[]> datos;
-	
+
 	private CellRenderer cellRenderer;
 	
-	public ViewPanel(Ventana ventana, Database database) {
+	public ProceduresTab(Ventana ventana, Database database) {
 		super(ventana, database);
 
 		initComponents();
 	}
-	
+
 	private void initComponents() {
-		columnHeaders = new String[COLUMN_COUNT];
-		columnHeaders[0] = resource.getString("ViewPanel.header1");
-		
 		setLayout(new BorderLayout());
-		
+
+		columnHeaders = new String[COLUMN_COUNT];
+		for (int i = 0; i < COLUMN_COUNT; i++)
+			columnHeaders[i] = resource.getString("ProceduresTab.column" + (i + 1));
+
 		titleLabel = new JLabel("New label");
 		titleLabel.setForeground(Color.WHITE);
 		titleLabel.setBackground(Color.BLACK);
 		titleLabel.setOpaque(true);
 		add(titleLabel, BorderLayout.NORTH);
-		
+
+		scrollPanel = new JScrollPane();
+		add(scrollPanel, BorderLayout.CENTER);
+
 		table = new JTable();
 		tableModel = new TableModel();
 		tableModel.setColumnHeaders(columnHeaders);
@@ -86,28 +91,22 @@ public class ViewPanel extends DatabaseElement{
 		
 		cellRenderer = new CellRenderer();
 		table.setDefaultRenderer(Object.class, cellRenderer);
-		
-		scrollPane = new JScrollPane();
-		scrollPane.setViewportView(table);
-		add(scrollPane, BorderLayout.CENTER);
-		
+
+		scrollPanel.setViewportView(table);
 	}
-	
+
 	protected void loadData() {
 		Query query = new Query(database);
-		String sql = "SHOW FULL TABLES IN " + selectedDB + " WHERE TABLE_TYPE LIKE 'VIEW';";
+		String sql = "SHOW PROCEDURE STATUS WHERE `Db`='" + selectedDB + "';";
 		query.executeQuery(sql);
 		ventana.addMessage(sql);
 
-		datos = new Vector<Object[]>();
-		
-		while(query.next()) {
-			String[] fila = {query.getString(1)};
-			
-			datos.add(fila);
-		}
-		
+		String[] columnNames = { "Name", "Type", "Definer", "Modified", "Created", "Security_Type",
+				"character_set_client", "collation_connection", "Database Collation", "Comment" };
+		datos = query.getDataAsStringVector(columnNames);
+
 		tableModel.setData(datos);
+
 		query.close();
 	}
 }

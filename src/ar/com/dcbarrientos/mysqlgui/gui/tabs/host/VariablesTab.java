@@ -24,7 +24,7 @@
  * Created on 4 feb. 2019, 11:47:53 
  */
 
-package ar.com.dcbarrientos.mysqlgui.gui.tabs;
+package ar.com.dcbarrientos.mysqlgui.gui.tabs.host;
 
 import java.awt.BorderLayout;
 import java.util.ArrayList;
@@ -157,8 +157,8 @@ public class VariablesTab extends DatabaseElement{
 			}
 		}
 		
-		ventana.addMessage(sql1 + "\n");
-		ventana.addMessage(sql2 + "\n");
+		ventana.addMessage(sql1);
+		ventana.addMessage(sql2);
 		query.close();
 		query2.close();
 	}

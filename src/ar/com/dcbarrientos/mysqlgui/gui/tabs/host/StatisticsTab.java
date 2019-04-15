@@ -24,7 +24,7 @@
  * Created on 4 feb. 2019, 11:47:53 
  */
 
-package ar.com.dcbarrientos.mysqlgui.gui.tabs;
+package ar.com.dcbarrientos.mysqlgui.gui.tabs.host;
 
 import java.awt.BorderLayout;
 import java.util.Vector;
@@ -52,7 +52,7 @@ public class StatisticsTab extends DatabaseElement {
 
 	private JTable statisticsTable;
 	private String[] columnHeaders;
-	private Vector<String[]> datos;
+	private Vector<Object[]> datos;
 	
 	private TableModel tableModel;
 
@@ -88,14 +88,14 @@ public class StatisticsTab extends DatabaseElement {
 		Query uQuery = new Query(database);
 		uQuery.executeQuery("SHOW GLOBAL STATUS LIKE 'Uptime';");
 		uQuery.next();
-		int uptime = uQuery.getInt(2);
+		double uptime = uQuery.getInt(2);
 		uQuery.close();
 
 		String sql = "SHOW GLOBAL STATUS LIKE 'Com\\_%';";
 		Query query = new Query(database);
 		query.executeQuery(sql);
 		
-		datos = new Vector<String[]>();
+		datos = new Vector<Object[]>();
 
 		int total = 0;
 		String[] fila;
@@ -109,20 +109,21 @@ public class StatisticsTab extends DatabaseElement {
 		}
 
 		for (int j = 0; j < datos.size(); j++) {
-			datos.get(j)[3] = String.format("%.2f", Double.parseDouble(datos.get(j)[1]) * 100 / total) + "%";
+			double t = Double.parseDouble((String)datos.get(j)[1]);
+			datos.get(j)[3] = String.format("%.2f", t * 100 / total) + "%";
 		}
 
-		datos.sort(new java.util.Comparator<String[]>() {
+		datos.sort(new java.util.Comparator<Object[]>() {
 			@Override
-			public int compare(String[] o1, String[] o2) {
-				return Integer.compare(Integer.parseInt(o2[1]), Integer.parseInt(o1[1]));
+			public int compare(Object[] o1, Object[] o2) {
+				return Integer.compare(Integer.parseInt((String)o2[1]), Integer.parseInt((String)o1[1]));
 			}
 		});
 
 		tableModel.setData(datos);
 		statisticsCount = datos.size();
 		
-		ventana.addMessage(sql + "\n");
+		ventana.addMessage(sql);
 		query.close();
 	}
 

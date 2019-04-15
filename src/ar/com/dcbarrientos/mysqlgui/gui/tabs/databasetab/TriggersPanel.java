@@ -36,6 +36,7 @@ import javax.swing.JTable;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.db.Query;
+import ar.com.dcbarrientos.mysqlgui.gui.CellRenderer;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 import ar.com.dcbarrientos.mysqlgui.model.TableModel;
@@ -51,15 +52,15 @@ public class TriggersPanel extends DatabaseElement {
 
 	private final int COLUMN_COUNT = 10;
 
-	//private String selectedDB = "";
-
 	private JLabel titleLabel;
 	private JScrollPane scrollPanel;
 	private JTable table;
 	private TableModel tableModel;
 
 	private String[] columnHeaders;
-	private Vector<String[]> datos;
+	private Vector<Object[]> datos;
+	
+	private CellRenderer cellRenderer;
 
 	public TriggersPanel(Ventana ventana, Database database) {
 		super(ventana, database);
@@ -87,6 +88,9 @@ public class TriggersPanel extends DatabaseElement {
 		tableModel = new TableModel();
 		tableModel.setColumnHeaders(columnHeaders);
 		table.setModel(tableModel);
+		
+		cellRenderer = new CellRenderer();
+		table.setDefaultRenderer(Object.class, cellRenderer);
 
 		scrollPanel.setViewportView(table);
 	}
@@ -95,9 +99,9 @@ public class TriggersPanel extends DatabaseElement {
 		Query query = new Query(database);
 		String sql = "SHOW TRIGGERS FROM `" + selectedDB + "`;";
 		query.executeQuery(sql);
-		ventana.addMessage(sql + "\n");
+		ventana.addMessage(sql);
 
-		datos = new Vector<String[]>();
+		datos = new Vector<Object[]>();
 		String[] fila;
 		while (query.next()) {
 			fila = new String[COLUMN_COUNT];
@@ -119,18 +123,4 @@ public class TriggersPanel extends DatabaseElement {
 		
 		query.close();
 	}
-/*
-	public void setSelectedDatabase(String databaseName) {
-		selectedDB = databaseName;
-		
-		refresh();
-	}
-*/
-	@Override
-	public void refresh() {
-		loadData();
-		revalidate();
-		repaint();
-	}
-
 }

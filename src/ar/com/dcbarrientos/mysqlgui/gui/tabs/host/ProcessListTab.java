@@ -24,7 +24,7 @@
  * Created on 4 feb. 2019, 11:47:53 
  */
 
-package ar.com.dcbarrientos.mysqlgui.gui.tabs;
+package ar.com.dcbarrientos.mysqlgui.gui.tabs.host;
 
 import java.awt.BorderLayout;
 import java.util.Vector;
@@ -53,7 +53,7 @@ public class ProcessListTab extends DatabaseElement{
 	
 	private JTable processesTable;
 	private String[] columnHeaders;
-	private Vector<String[]> datos;
+	private Vector<Object[]> datos;
 	private TableModel tableModel;
 
 	public ProcessListTab(Ventana ventana, Database database) {
@@ -93,7 +93,7 @@ public class ProcessListTab extends DatabaseElement{
 		Query query = new Query(database);
 		query.executeQuery(sql);
 	
-		datos = new Vector<String[]>();
+		datos = new Vector<Object[]>();
 		
 		String[] fila;
 		while(query.next()) {
@@ -108,7 +108,7 @@ public class ProcessListTab extends DatabaseElement{
 		processCount = datos.size();
 		
 		query.close();
-		ventana.addMessage(sql + "\n");
+		ventana.addMessage(sql);
 	}
 
 	@Override

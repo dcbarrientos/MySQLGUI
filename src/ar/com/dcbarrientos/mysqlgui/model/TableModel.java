@@ -34,26 +34,27 @@ import javax.swing.table.AbstractTableModel;
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class TableModel extends AbstractTableModel{
+public class TableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
 
-	Vector<String[]> data;
-	String[] columnHeaders;	
-	
+	Vector<Object[]> data;
+	String[] columnHeaders;
+	Class<?>[] classes;
+
 	public TableModel() {
-		
+		data = new Vector<Object[]>();
 	}
-	
-	public TableModel(Vector<String[]> data, String[] columnHeaders) {
+
+	public TableModel(Vector<Object[]> data, String[] columnHeaders) {
 		this.data = data;
 		this.columnHeaders = columnHeaders;
 	}
-	
+
 	@Override
 	public int getRowCount() {
-		if(data != null)
+		if (data != null)
 			return data.size();
-		
+
 		return 0;
 	}
 
@@ -70,20 +71,36 @@ public class TableModel extends AbstractTableModel{
 	@Override
 	public String getColumnName(int column) {
 		return columnHeaders[column];
-	} 
-	
+	}
+
 	@Override
 	public void fireTableDataChanged() {
 		super.fireTableDataChanged();
 	}
-	
-	public void setData(Vector<String[]> data) {
+
+	public void setData(Vector<Object[]> data) {
 		this.data = data;
 		super.fireTableDataChanged();
 	}
-	
+
 	public void setColumnHeaders(String[] columnHeaders) {
 		this.columnHeaders = columnHeaders;
 		super.fireTableStructureChanged();
 	}
+	
+	public void addRecord(Object[] records) {
+		data.add(records);
+		fireTableDataChanged();
+	}
+	
+	public void setColumnsClasses(Class<?>[] classes) {
+		this.classes = classes;
+	}
+	
+	@Override
+	public Class<?> getColumnClass(int columnIndex) {
+		if(classes != null)
+			return classes[columnIndex];
+		return String.class;
+    }
 }

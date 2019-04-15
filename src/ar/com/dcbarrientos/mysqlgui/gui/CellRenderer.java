@@ -16,62 +16,49 @@
  */
 
 /** 
- * DatabaseElement.java
+ * CellRenderer.java
  *
  * Description:	    <Descripcion>
  * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
- * Created on 1 feb. 2019, 21:46:49 
+ * Created on 16 feb. 2019, 10:50:51 
  */
 
 package ar.com.dcbarrientos.mysqlgui.gui;
 
-import java.util.ResourceBundle;
+import java.awt.Color;
+import java.awt.Component;
 
-import javax.swing.JPanel;
-
-import ar.com.dcbarrientos.mysqlgui.db.Database;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public abstract class DatabaseElement extends JPanel{
+public class CellRenderer extends DefaultTableCellRenderer implements TableCellRenderer {
 	private static final long serialVersionUID = 1L;
-	
-	protected Database database;
-	protected Ventana ventana;
-	protected ResourceBundle resource;
-	
-	protected String selectedDB;
-	protected String selectedTable;
+
+	@Override
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+			int row, int column) {
+		// Establecemos el fondo blanco o vacio
+		setBackground(null);
+
+		// Constructor de la clase DefaultTableCellRenderer
+		super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+		// Establecemos las filas que queremos cambiar el color. == 0 para pares y != 0
+		// para impares
+		boolean oddRow = (row % 2 == 0);
 		
-	public DatabaseElement(Ventana ventana, Database database) {
-		this.ventana = ventana;
-		this.database = database;
-		this.resource = ventana.resource;
-	}
-	
-	public void setSelectedDatabase(String db) {
-		selectedDB = db;
+		//Creamos un color para las filas. El 200, 200, 200 en RGB es un color gris
+		Color c = new Color(200, 200, 200);
 		
-		refresh();
-	}
-	
-	public void setSelectedTable(String db, String table) {
-		setSelectedDatabase(db);
-		selectedTable = table;
+		if(oddRow)
+			setBackground(c);
 		
-		refresh();
-	}
-	
-	public void refresh() {
-		loadData();
-		revalidate();
-		repaint();
-	}
-	
-	protected void loadData() {
-		
+		return this;
 	}
 }

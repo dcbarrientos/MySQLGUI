@@ -16,62 +16,54 @@
  */
 
 /** 
- * DatabaseElement.java
+ * DeleteDatabase.java
  *
  * Description:	    <Descripcion>
  * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
- * Created on 1 feb. 2019, 21:46:49 
+ * Created on 24 feb. 2019, 11:47:23 
  */
 
 package ar.com.dcbarrientos.mysqlgui.gui;
 
 import java.util.ResourceBundle;
 
-import javax.swing.JPanel;
+import javax.swing.JOptionPane;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
+import ar.com.dcbarrientos.mysqlgui.db.Query;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public abstract class DatabaseElement extends JPanel{
-	private static final long serialVersionUID = 1L;
-	
-	protected Database database;
-	protected Ventana ventana;
-	protected ResourceBundle resource;
-	
-	protected String selectedDB;
-	protected String selectedTable;
-		
-	public DatabaseElement(Ventana ventana, Database database) {
-		this.ventana = ventana;
-		this.database = database;
+public class DeleteDatabase {
+	private ResourceBundle resource;
+	private Database database;
+
+	public DeleteDatabase(Ventana ventana, Database database) {
 		this.resource = ventana.resource;
+		this.database = database;
 	}
-	
-	public void setSelectedDatabase(String db) {
-		selectedDB = db;
+
+	public boolean deleteDatabase(String databaseName) {
+
+		String msg = resource.getString("DeleteDatabase.verification") + databaseName + "\"?";
+		String title = resource.getString("DeleteDatabase.title");
+		if (JOptionPane.showConfirmDialog(null, msg, title, JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) 
+		{
+			Query query = new Query(database);
+			int r = query.executeUpdate("DROP DATABASE `" + databaseName + "`");
+			if(r < 0) {
+				JOptionPane.showMessageDialog(null, query.errorCode + ": " + query.errorMsg, title, JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+			query.close();
+			
+			return true;
+		}
 		
-		refresh();
-	}
-	
-	public void setSelectedTable(String db, String table) {
-		setSelectedDatabase(db);
-		selectedTable = table;
-		
-		refresh();
-	}
-	
-	public void refresh() {
-		loadData();
-		revalidate();
-		repaint();
-	}
-	
-	protected void loadData() {
-		
+		return false;
 	}
 }

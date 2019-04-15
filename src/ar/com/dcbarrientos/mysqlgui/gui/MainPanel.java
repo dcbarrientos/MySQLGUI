@@ -30,6 +30,7 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -46,16 +47,16 @@ import ar.com.dcbarrientos.mysqlgui.gui.tabs.TableTab;
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class MainPanel extends JPanel{
+public class MainPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	public final int HOST_INDEX = 0;
 	public final int DATABASE_INDEX = 1;
 	public final int TABLE_INDEX = 2;
-	
+
 	private Ventana ventana;
 	private Database database;
-	
+
 	private Vector<DatabaseElement> tabList;
 	private DatabaseTree tree;
 	private JTabbedPane tabbedPane;
@@ -67,20 +68,20 @@ public class MainPanel extends JPanel{
 
 	public MainPanel(Ventana ventana) {
 		this.ventana = ventana;
-		
+
 	}
-	
+
 	private void initComponents() {
 		setLayout(new BorderLayout());
 		tabList = new Vector<DatabaseElement>();
-		
+
 		JSplitPane mainSplit = new JSplitPane();
 		mainSplit.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		add(mainSplit, BorderLayout.CENTER);
-		
+
 		JSplitPane secondarySplit = new JSplitPane();
 		mainSplit.setLeftComponent(secondarySplit);
-		
+
 		JScrollPane scrollPane_1 = new JScrollPane();
 		mainSplit.setRightComponent(scrollPane_1);
 
@@ -89,47 +90,65 @@ public class MainPanel extends JPanel{
 		scrollPane_1.setViewportView(txtMessages);
 
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		
+
 		hostTab = new HostTab(ventana, database);
 		tabList.add(hostTab);
 		tabbedPane.add(hostTab.title, hostTab);
-		
+
 		queryTab = new QueryTab(ventana, database);
 		tabList.add(queryTab);
 		tabbedPane.add(queryTab.title, queryTab);
-		
+
 		secondarySplit.setRightComponent(tabbedPane);
-		
+
 		JScrollPane scrollPane = new JScrollPane();
 		secondarySplit.setLeftComponent(scrollPane);
-		
+
 		tree = new DatabaseTree(ventana, database);
-		scrollPane.setViewportView(tree);		
+		tabList.add(tree);
+		scrollPane.setViewportView(tree);
 	}
-	
+
 	public void setConnection(Database database) {
 		this.database = database;
 		initComponents();
 	}
-	
+
 	public void addMessage(String msg) {
 		String id = "[" + database.getConnectionID() + "] ";
-		txtMessages.append(id + msg);
-		
+		txtMessages.append(id + msg + "\n");
+
 	}
 	
-	public void selectDatabase(String selectedDB, boolean show) {
-		//TODO: cuando se hace click en una base de datos en tree.
+	public void selectRoot() {
+		database.setSelectedTable("", "");
+		if(tableTab != null) {
+			tabList.remove(tableTab);
+			tabbedPane.remove(tableTab);
+			tableTab = null;
+		}
+		if(databaseTab != null) {	
+			tabList.remove(databaseTab);
+			tabbedPane.remove(databaseTab);
+			databaseTab = null;
+		}
 		
+		tabbedPane.repaint();
+		
+		tabbedPane.setSelectedIndex(HOST_INDEX);
+	}
+
+	public void setSelectedDatabase(String selectedDB, boolean show) {
+		// TODO: que hacer cuando selectedDB es null, no hay db seleccionada.
 		database.setSelectedDatabase(selectedDB);
-		if(databaseTab == null) {
-			//TODO: show true debo eliminar tableTab.
+		if (databaseTab == null) {
+			// TODO: show true debo eliminar tableTab.
 			databaseTab = new DatabaseTab(ventana, database);
 			tabList.add(databaseTab);
 			tabbedPane.insertTab(databaseTab.title + selectedDB, null, databaseTab, null, DATABASE_INDEX);
 		} else {
 			tabbedPane.setTitleAt(DATABASE_INDEX, databaseTab.title + selectedDB);
-			if(tableTab!=null && show) {
+			if (tableTab != null && show) {
 				tabList.remove(tableTab);
 				tabbedPane.remove(tableTab);
 				tableTab = null;
@@ -137,30 +156,67 @@ public class MainPanel extends JPanel{
 			}
 		}
 		databaseTab.setSelectedDatabase(selectedDB);
-		
-		if(show)
+
+		if (show)
 			tabbedPane.setSelectedIndex(DATABASE_INDEX);
 	}
-	
-	public void selectedTable(String selectedDB, String selectedTable) {
-		//TODO: cuando se hace click en una tabla.
+
+	public void setSelectedTable(String selectedDB, String selectedTable) {
+		// TODO: cuando se hace click en una tabla.
 		database.setSelectedTable(selectedDB, selectedTable);
-		
-		selectDatabase(selectedDB, false);
-		if(tableTab == null) {
-			tableTab = new TableTab(ventana, database);
+
+		setSelectedDatabase(selectedDB, false);
+		if (tableTab == null) {
+			tableTab = new TableTab(ventana, database, false);
 			tabList.add(tableTab);
 			tabbedPane.insertTab(tableTab.title + selectedTable, null, tableTab, null, TABLE_INDEX);
 		} else {
 			tabbedPane.setTitleAt(TABLE_INDEX, tableTab.title + selectedTable);
-			
+
 		}
 		tableTab.setSelectedTable(selectedDB, selectedTable);
 		tabbedPane.setSelectedIndex(TABLE_INDEX);
 	}
 
+	public void deleteDatabase() {
+		if (database.getSelectedDatabase().length() > 0) {
+			DeleteDatabase dd = new DeleteDatabase(ventana, database);
+			if (dd.deleteDatabase(database.getSelectedDatabase())) {
+				// selectDatabase("", false);
+
+				if (tableTab != null) {
+					tabList.remove(tableTab);
+					tabbedPane.remove(tableTab);
+					tableTab = null;
+				}
+
+				tabList.remove(databaseTab);
+				tabbedPane.remove(databaseTab);
+				databaseTab = null;
+				database.setSelectedTable("", "");
+				// databaseTree.selectRoot();
+
+				refresh();
+			}
+		} else {
+			JOptionPane.showMessageDialog(null, ventana.resource.getString("DeleteDatabase.selectDB"),
+					ventana.resource.getString("DeleteDatabase.title"), JOptionPane.ERROR_MESSAGE);
+		}
+
+	}
+
 	public void refresh() {
-		for(DatabaseElement element: tabList)
+		for (DatabaseElement element : tabList)
 			element.refresh();
+	}
+	
+	public void selectTableTab(int index) {
+		tableTab.selectTab(index);
+	}
+	
+	public void showTableData(String databaseName, String tableName) {
+		if(tableTab != null) {
+			tableTab.selectTab(TableTab.DATA_INDEX);
+		}
 	}
 }

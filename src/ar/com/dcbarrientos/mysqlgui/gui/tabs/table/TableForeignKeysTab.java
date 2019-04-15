@@ -16,62 +16,36 @@
  */
 
 /** 
- * DatabaseElement.java
+ * TableForeignKeysTab.java
  *
  * Description:	    <Descripcion>
  * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
- * Created on 1 feb. 2019, 21:46:49 
+ * Created on 28 feb. 2019, 11:35:45 
  */
 
-package ar.com.dcbarrientos.mysqlgui.gui;
-
-import java.util.ResourceBundle;
-
-import javax.swing.JPanel;
+package ar.com.dcbarrientos.mysqlgui.gui.tabs.table;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
+import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
+import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public abstract class DatabaseElement extends JPanel{
+public class TableForeignKeysTab extends DatabaseElement{
 	private static final long serialVersionUID = 1L;
 	
-	protected Database database;
-	protected Ventana ventana;
-	protected ResourceBundle resource;
-	
-	protected String selectedDB;
-	protected String selectedTable;
-		
-	public DatabaseElement(Ventana ventana, Database database) {
-		this.ventana = ventana;
-		this.database = database;
-		this.resource = ventana.resource;
+	public String title = resource.getString("TableForeignKeysTab.title");
+
+	public TableForeignKeysTab(Ventana ventana, Database database) {
+		super(ventana, database);
+
+		initComponents();
 	}
-	
-	public void setSelectedDatabase(String db) {
-		selectedDB = db;
-		
-		refresh();
-	}
-	
-	public void setSelectedTable(String db, String table) {
-		setSelectedDatabase(db);
-		selectedTable = table;
-		
-		refresh();
-	}
-	
-	public void refresh() {
-		loadData();
-		revalidate();
-		repaint();
-	}
-	
-	protected void loadData() {
+
+	private void initComponents() {
 		
 	}
 }

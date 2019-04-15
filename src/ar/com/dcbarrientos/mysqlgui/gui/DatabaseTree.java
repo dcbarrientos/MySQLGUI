@@ -45,9 +45,6 @@ import ar.com.dcbarrientos.mysqlgui.db.Query;
  *
  */
 public class DatabaseTree extends DatabaseElement {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	private JTree tree;
@@ -83,11 +80,10 @@ public class DatabaseTree extends DatabaseElement {
 		renderer.setLeafIcon(tableNode);
 
 		loadData();
-		tree.setModel(treeModel);
 		tree.setCellRenderer(renderer);
 
 		tree.expandPath(new TreePath(id.getPath()));
-			tree.addTreeSelectionListener(new TreeSelectionListener() {
+		tree.addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
 			public void valueChanged(TreeSelectionEvent e) {
 				treeValueChanged(e);
@@ -111,7 +107,7 @@ public class DatabaseTree extends DatabaseElement {
 			treeModel.insertNodeInto(db, id, id.getChildCount());
 
 			Query tableQuery = new Query(database);
-			String sql = "SHOW TABLES FROM " + query.getString(1) + ";";
+			String sql = String.format(Query.SQL_SHOW_TABLES_FROM, query.getString(1));
 			tableQuery.executeQuery(sql);
 			boolean empty = true;
 			while (tableQuery.next()) {
@@ -126,6 +122,8 @@ public class DatabaseTree extends DatabaseElement {
 			tableQuery.close();
 		}
 		query.close();
+		tree.setModel(treeModel);
+
 	}
 
 	private boolean isDatabase(TreePath path) {
@@ -142,19 +140,38 @@ public class DatabaseTree extends DatabaseElement {
 
 	public void treeValueChanged(TreeSelectionEvent e) {
 		TreePath path = e.getPath();
-		if (isDatabase(path)) {
-			ventana.selectDatabase(path.getLastPathComponent().toString());
-		} else if (isTable(path)) {
-			ventana.selectTable(path.getPathComponent(DATABASE_COUNT - 1).toString(),
-					path.getLastPathComponent().toString());
+		
+		String dbName = "";
+		String tbName = "";
+		if(isDatabase(path))
+			dbName = path.getLastPathComponent().toString();
+		else if(isTable(path)) {
+			dbName = path.getPathComponent(DATABASE_COUNT -1).toString();
+			tbName = path.getLastPathComponent().toString();
+		}
 
+		int r = database.existeTabla(dbName, tbName); 
+		if(r == -2) {
+			selectRoot();
+		} else if(r == -1) {
+			ventana.setSelectedDatabase(dbName);
+		} else{
+			ventana.setSelectedTable(dbName, tbName);
 		}
 	}
 
 	@Override
 	public void refresh() {
-		//TODO: Refresh para datatree
-		ventana.refresh();
+		loadData();
+
+		tree.revalidate();
+		tree.repaint();
 	}
 
+	public void selectRoot() {
+//		TreePath path = new TreePath(id);
+//		tree.expandPath(path);
+//		tree.setSelectionPath(path);
+		ventana.selectRoot();
+	}
 }

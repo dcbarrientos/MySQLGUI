@@ -34,6 +34,9 @@ import javax.swing.JTabbedPane;
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.EventsTab;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.FunctionsTab;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.ProceduresTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.TablesPanel;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.TriggersPanel;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.databasetab.ViewPanel;
@@ -50,17 +53,19 @@ public class DatabaseTab extends DatabaseElement {
 	private final int TABLES_INDEX = 0;
 	private final int TRIGGERS_INDEX = 1;
 	private final int VIEWS_INDEX = 2;
-	private final int STOREDPROCEDURES_INDEX = 3;
+	private final int PROCEDURES_INDEX = 3;
 	private final int FUNCTIONS_INDEX = 4;
-	private final int GRANTS_INDEX = 5;
-	private final int EVENTS_INDEX = 6;
+	private final int EVENTS_INDEX = 5;
 
-	//private String selectedDB;
 	private Vector<DatabaseElement> tabList;
 
 	private JTabbedPane tabPane;
 	private TablesPanel tablesPanel;
 	private TriggersPanel triggersPanel;
+	private ProceduresTab proceduresPanel;
+	private FunctionsTab functionsPanel;
+	private EventsTab eventsPanel;
+	
 	private ViewPanel viewPanel;
 
 	public DatabaseTab(Ventana ventana, Database database) {
@@ -88,6 +93,18 @@ public class DatabaseTab extends DatabaseElement {
 		viewPanel = new ViewPanel(ventana, database);
 		tabList.add(viewPanel);
 		tabPane.insertTab(viewPanel.title, null, viewPanel, null, VIEWS_INDEX);
+
+		proceduresPanel = new ProceduresTab(ventana, database);
+		tabList.add(proceduresPanel);
+		tabPane.insertTab(proceduresPanel.title, null, proceduresPanel, null, PROCEDURES_INDEX);
+		
+		functionsPanel = new FunctionsTab(ventana, database);
+		tabList.add(functionsPanel);
+		tabPane.insertTab(functionsPanel.title, null, functionsPanel, null, FUNCTIONS_INDEX);
+
+		eventsPanel = new EventsTab(ventana, database);
+		tabList.add(eventsPanel);
+		tabPane.insertTab(eventsPanel.title, null, eventsPanel, null, EVENTS_INDEX);		
 	}
 
 	public void setSelectedDatabase(String databaseName) {

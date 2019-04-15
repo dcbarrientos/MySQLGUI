@@ -36,6 +36,10 @@ import javax.swing.JTabbedPane;
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.host.ProcessListTab;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.host.StatisticsTab;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.host.StatusTab;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.host.VariablesTab;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
