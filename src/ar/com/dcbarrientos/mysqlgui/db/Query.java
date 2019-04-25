@@ -53,6 +53,7 @@ public class Query {
 	public static final String SQL_DELETE_TABLE = "DELETE FROM %s.%s;";
 	public static final String SQL_DROP_TABLE = "DROP TABLE %s.%s;";
 	public static final String SQL_COLLATION_LIST = "SELECT * FROM `information_schema`.`COLLATIONS`;";
+	public static final String SQL_COLLATION_LIST_PARAM = "SELECT * FROM `information_schema`.`COLLATIONS` WHERE COLLATION_NAME LIKE  '%s' ESCAPE '\\\\';";
 	public static final String SQL_ENGINE_LIST = "SHOW ENGINES;";
 	public static final String SQL_CHARSET_LIST = "SHOW CHARACTER SET;";
 	public static final String SQL_SHOW_CREATE_TABLE = "SHOW CREATE TABLE %s.%s;";

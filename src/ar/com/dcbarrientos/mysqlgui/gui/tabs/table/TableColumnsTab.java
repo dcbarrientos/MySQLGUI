@@ -40,7 +40,9 @@ import javax.swing.JToolBar;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
+import ar.com.dcbarrientos.mysqlgui.gui.NewColumnDialog;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
+import ar.com.dcbarrientos.mysqlgui.model.ColumnModel;
 import ar.com.dcbarrientos.mysqlgui.model.TableModel;
 import ar.com.dcbarrientos.mysqlgui.model.TableRenderer;
 
@@ -84,6 +86,9 @@ public class TableColumnsTab extends DatabaseElement {
 
 	private String[] columnsName;
 	private Vector<Object[]> data;
+	private Vector<ColumnModel> definitionColumns;
+	private Vector<ColumnModel> alterColumns;
+
 	private JScrollPane scroll;
 	private JTable table;
 	private TableModel tableModel;
@@ -161,6 +166,9 @@ public class TableColumnsTab extends DatabaseElement {
 	}
 
 	protected void loadData() {
+		definitionColumns = new Vector<ColumnModel>();
+		alterColumns = new Vector<ColumnModel>();
+		
 		if (definition != null) {
 			tableModel = new TableModel();
 			tableModel.setColumnsClasses(classes);
@@ -182,12 +190,19 @@ public class TableColumnsTab extends DatabaseElement {
 			table.setModel(tableModel);
 			columnOrder = 1;
 		}
+		showDefinition();
+	}
+	
+	private void showDefinition() {
+		for(ColumnModel c: definitionColumns)
+			System.out.println(c.getDefinition());
 	}
 
 	public void addRecord(String linea) {
 		String[] datos = linea.split(" ");
 		Object[] records = new Object[COLUMN_COUNT];
 		String dato;
+		ColumnModel columnModel = new ColumnModel();
 
 		// Indice de la columna
 		JLabel campo = new JLabel(String.valueOf(columnOrder));
@@ -202,13 +217,18 @@ public class TableColumnsTab extends DatabaseElement {
 
 		// Nombre del campo
 		records[COLUMN_NAME_INDEX] = datos[0].substring(1, datos[0].length() - 1);
+		columnModel.name = datos[0].substring(1, datos[0].length() - 1);
 
 		// Tipo y longitud del dato
 		dato = datos[1].trim();
 		if (dato.indexOf("(") > 0) {
 			records[COLUMN_DATA_TYPE_INDEX] = dato.substring(0, dato.indexOf("("));
+			columnModel.dataType = dato.substring(0, dato.indexOf("("));
+			
 			records[COLUMN_DATA_LENGTH_INDEX] = dato.substring(dato.indexOf("(") + 1, dato.indexOf(")"));
+			columnModel.length = dato.substring(dato.indexOf("(") + 1, dato.indexOf(")"));
 		} else {
+			columnModel.dataType = dato;
 			records[COLUMN_DATA_TYPE_INDEX] = dato;
 			records[COLUMN_DATA_LENGTH_INDEX] = "";
 		}
@@ -219,19 +239,23 @@ public class TableColumnsTab extends DatabaseElement {
 			case "NOT":
 				i++;
 				records[COLUMN_NOT_NULL_INDEX] = true;
+				columnModel.notNull = true;
 				break;
 			case "NULL":
 				records[COLUMN_NOT_NULL_INDEX] = false;
+				columnModel.notNull = false;
 				break;
 			case "DEFAULT":
 				// TODO: Sacar o dejar las '' dependiendo del dato que lo usa. BIGINT sin,
 				// VARCHAR con.
 				i++;
 				records[COLUMN_DEFAULT_INDEX] = datos[i];
+				columnModel.columnDefault = datos[i];
 				break;
 			case "AUTO_INCREMENT":
 				//TODO: Sólo para integers y tipo floating-point 
 				records[COLUMN_AUTO_INCREMENT_INDEX] = true;
+				columnModel.autoincrement = true;
 				break;
 			case "BINARY":
 //				tableStructure.setValueAt(true, selectedRow, CNewTableField.BINARY_INDEX);
@@ -239,24 +263,30 @@ public class TableColumnsTab extends DatabaseElement {
 				break;
 			case "UNSIGNED":
 				records[COLUMN_UNSIGNED_INDEX] = true;
+				columnModel.unsigned = true;
 				break;
 			case "ZEROFILL":
 				records[COLUMN_ZEROFILL_INDEX] = true;
+				columnModel.zerofill = true;
 				break;
 			case "COMMENT":
 				i++;
 				records[COLUMN_COMMENT_INDEX] = datos[i];
+				columnModel.comment = datos[i];
 				break;
 			case "COLLATE":
 				i++;
 				records[COLUMN_COLLATION_INDEX] = datos[i];
+				columnModel.collate = datos[i];
 				break;
 			case "CHARACTER":
 			case "CHARSET":
+				columnModel.charset = datos[i];
 				break;
 			}
 			i++;
 		}
+		definitionColumns.add(columnModel);
 		data.add(records);
 	}
 
@@ -270,6 +300,8 @@ public class TableColumnsTab extends DatabaseElement {
 
 	private void addButtonMouseClicked(MouseEvent e) {
 		//TODO: falta implementar.
+		NewColumnDialog nc = new NewColumnDialog(database);
+		System.out.println(nc.showDialog());
 	}
 
 	private void deleteButtonMouseClicked(MouseEvent e) {
