@@ -29,6 +29,7 @@ package ar.com.dcbarrientos.mysqlgui.db;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 import ar.com.dcbarrientos.mysqlgui.Application;
 
@@ -55,17 +56,62 @@ public class Database {
 	private String errorMessage = "";
 	private int errorCode;
 
+	public HashMap<String, Boolean> mySqlDataType;
+
 	public Database(String host, String user, String pass) {
 		this(host, DEFAULT_PORT, user, pass);
 	}
 
 	public Database(String host, int port, String user, String pass) {
+		loadData();
+
 		this.host = host;
 		this.port = port;
 		this.user = user;
 		this.pass = pass;
 		this.url = DABASE_URL + host + ":" + this.port;
 		connect();
+	}
+
+	private void loadData() {
+		mySqlDataType = new HashMap<String, Boolean>();
+
+		mySqlDataType.put("CHAR", true);
+		mySqlDataType.put("VARCHAR", false);
+		mySqlDataType.put("TINYTEXT", false);
+		mySqlDataType.put("TEXT", false);
+		mySqlDataType.put("MEDIUMTEXT", true);
+		mySqlDataType.put("LONGTEXT", false);
+		mySqlDataType.put("BINARY", true);
+		mySqlDataType.put("VARBINARY", true);
+		mySqlDataType.put("BIT", false);
+		mySqlDataType.put("TINYINT", true);
+		mySqlDataType.put("SMALLINT", true);
+		mySqlDataType.put("MEDIUMINT", true);
+		mySqlDataType.put("INT", true);
+		mySqlDataType.put("INTEGER", true);
+		mySqlDataType.put("BIGINT", true);
+		mySqlDataType.put("DECIMAL", true);
+		mySqlDataType.put("DEC", true);
+		mySqlDataType.put("NUMERIC", true);
+		mySqlDataType.put("FIXED", true);
+		mySqlDataType.put("FLOAT", true);
+		mySqlDataType.put("DOUBLE", true);
+		mySqlDataType.put("DOUBLE PRECISION", true);
+		mySqlDataType.put("REAL", true);
+		mySqlDataType.put("FLOAT", true);
+		mySqlDataType.put("BOOL", false);
+		mySqlDataType.put("BOOLEAN", false);
+		mySqlDataType.put("DATE", false);
+		mySqlDataType.put("DATETIME", false);
+		mySqlDataType.put("TIMESTAMP", true);
+		mySqlDataType.put("TIME", false);
+		mySqlDataType.put("YEAR", true);
+		mySqlDataType.put("TINYBLOB", false);
+		mySqlDataType.put("BLOB", false);
+		mySqlDataType.put("MEDIUMBLOB", false);
+		mySqlDataType.put("LONGTEXT", false);
+
 	}
 
 	public Connection connect() {

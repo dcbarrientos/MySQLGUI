@@ -60,7 +60,6 @@ public class NewColumnDialog extends JDialog {
 
 	private Database database;
 	private ColumnModel columnModel = null;
-	private String defaultCollation;
 	private HashMap<String, String> charsetList;
 
 	private JPanel panel;
@@ -158,6 +157,11 @@ public class NewColumnDialog extends JDialog {
 		lblDatatype = new JLabel("Datatype:");
 
 		cbDataType = new JComboBox<String>();
+		cbDataType.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent event) {
+				txtLength.setEnabled(database.mySqlDataType.get(cbDataType.getSelectedItem()));
+			}
+		});
 
 		lblLength = new JLabel("Length:");
 
@@ -300,6 +304,9 @@ public class NewColumnDialog extends JDialog {
 			charsetList.put(query.getString("Charset"), query.getString("Default collation"));
 			cbCharset.addItem(query.getString("Charset"));
 		}
+		
+		for(String key: database.mySqlDataType.keySet())
+			cbDataType.addItem(key);
 		
 		query.close();
 	}
