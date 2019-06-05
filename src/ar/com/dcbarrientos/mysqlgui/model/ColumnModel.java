@@ -34,46 +34,63 @@ public class ColumnModel {
 	public String name;
 	public String dataType;
 	public String length;
-	public boolean autoincrement;
+	public String collate;
+	public String charset;
+	public String columnDefault;
 	public boolean notNull;
+	public boolean unique;
 	public boolean binary;
 	public boolean unsigned;
 	public boolean zerofill;
-	public boolean unique;
-	public String columnDefault;
-	public String collate;
-	public String charset;
+	public boolean autoincrement;
+	public boolean generated;
+	public boolean virtual;
+	public boolean stored;
 	public String comment;
-
+	
 	public String getDefinition() {
 		String definition = "";
 		definition = "`" + name + "` ";
 		definition += dataType.toUpperCase();
-		if (length.length() > 0)
+		if (length != null && length.length() > 0)
 			definition += "(" + length + ") ";
 		else
 			definition += " ";
 		
-		if(autoincrement)
-			definition += "AUTOINCREMENT ";
+		if(generated) {
+			definition += "GENERATED ALWAYS AS (" + columnDefault + ") ";
+			if(virtual)
+				definition += "VIRTUAL ";
+			else
+				definition += "STORED ";
+		}
+		
+		if(unique)
+			definition += "UNIQUE ";
 		if(notNull)
 			definition += "NOT NULL ";
 		if(!notNull)
 			definition += "NULL ";
-		if(binary)
-			definition += "BINARY ";
-		if(unsigned)
-			definition += "UNSIGNED ";
-		if(zerofill)
-			definition += "ZEROFILL ";
-		if(columnDefault.length() > 0)
-			definition += "DEFAULT '" + columnDefault + "' ";
+		
+		if(!generated) {
+			if(autoincrement)
+				definition += "AUTOINCREMENT ";
+			if(binary)
+				definition += "BINARY ";
+			if(unsigned)
+				definition += "UNSIGNED ";
+			if(zerofill)
+				definition += "ZEROFILL ";
+			if(columnDefault != null && columnDefault.length() > 0 && !generated)
+				definition += "DEFAULT '" + columnDefault + "' ";
+			if(collate != null)
+				definition += "COLLATE " + collate + " ";
+			if(charset != null)
+				definition += "CHARTSET " + charset + " ";
+		}
+		
 		if(comment != null)
 			definition += "COMMENT '" + comment + "' ";
-		if(comment != null)
-			definition += "COLLATE " + collate + " ";
-		if(comment != null)
-			definition += "CHARTSET " + charset + " ";
 		
 		return definition;
 	}

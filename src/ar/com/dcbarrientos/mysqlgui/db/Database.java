@@ -39,8 +39,19 @@ import ar.com.dcbarrientos.mysqlgui.Application;
  */
 public class Database {
 	public static final int DEFAULT_PORT = 3306;
+	
 	private final String DATABASE_DRIVER = "com.mysql.jdbc.Driver";
 	private final String DABASE_URL = "jdbc:mysql://";
+	
+	public final int DATATYPE_LENTH_INDEX = 0;
+	public final int DATATYPE_PRIMARY_KEY_INDEX = 1;
+	public final int DATATYPE_NOT_NULL_INDEX = 2;
+	public final int DATATYPE_UNIQUE_INDEX = 3;
+	public final int DATATYPE_BINARY_INDEX = 4;
+	public final int DATATYPE_UNSIGNED_INDEX = 5;
+	public final int DATATYPE_ZEROFILL_INDEX = 6;
+	public final int DATATYPE_AUTOINCREMENT_INDEX = 7;
+	public final int DATATYPE_GENERATED_INDEX = 8;
 
 	private String url;
 	public String host;
@@ -56,7 +67,7 @@ public class Database {
 	private String errorMessage = "";
 	private int errorCode;
 
-	public HashMap<String, Boolean> mySqlDataType;
+	public HashMap<String, Boolean[]> mySqlDataType;
 
 	public Database(String host, String user, String pass) {
 		this(host, DEFAULT_PORT, user, pass);
@@ -74,43 +85,62 @@ public class Database {
 	}
 
 	private void loadData() {
-		mySqlDataType = new HashMap<String, Boolean>();
+		mySqlDataType = new HashMap<String, Boolean[]>();
+		// Los booleans de esta estructura habilitan o deshabilitan controles.
+		// Length, Primary key, not null, unique, binary, unsigned, zero fill, autoincrement, generated
 
-		mySqlDataType.put("CHAR", true);
-		mySqlDataType.put("VARCHAR", false);
-		mySqlDataType.put("TINYTEXT", false);
-		mySqlDataType.put("TEXT", false);
-		mySqlDataType.put("MEDIUMTEXT", true);
-		mySqlDataType.put("LONGTEXT", false);
-		mySqlDataType.put("BINARY", true);
-		mySqlDataType.put("VARBINARY", true);
-		mySqlDataType.put("BIT", false);
-		mySqlDataType.put("TINYINT", true);
-		mySqlDataType.put("SMALLINT", true);
-		mySqlDataType.put("MEDIUMINT", true);
-		mySqlDataType.put("INT", true);
-		mySqlDataType.put("INTEGER", true);
-		mySqlDataType.put("BIGINT", true);
-		mySqlDataType.put("DECIMAL", true);
-		mySqlDataType.put("DEC", true);
-		mySqlDataType.put("NUMERIC", true);
-		mySqlDataType.put("FIXED", true);
-		mySqlDataType.put("FLOAT", true);
-		mySqlDataType.put("DOUBLE", true);
-		mySqlDataType.put("DOUBLE PRECISION", true);
-		mySqlDataType.put("REAL", true);
-		mySqlDataType.put("FLOAT", true);
-		mySqlDataType.put("BOOL", false);
-		mySqlDataType.put("BOOLEAN", false);
-		mySqlDataType.put("DATE", false);
-		mySqlDataType.put("DATETIME", false);
-		mySqlDataType.put("TIMESTAMP", true);
-		mySqlDataType.put("TIME", false);
-		mySqlDataType.put("YEAR", true);
-		mySqlDataType.put("TINYBLOB", false);
-		mySqlDataType.put("BLOB", false);
-		mySqlDataType.put("MEDIUMBLOB", false);
-		mySqlDataType.put("LONGTEXT", false);
+		mySqlDataType.put("BINARY", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("BLOB", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("LONGBLOB", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("MEDIUMBLOB", 		new Boolean[]{false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("TINYBLOB", 			new Boolean[]{false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("VARBINARY", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
+		
+		mySqlDataType.put("DATE", 				new Boolean[]{false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("DATETIME", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("TIME", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("TIMESTAMP", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("YEAR", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
+
+		mySqlDataType.put("GEOMETRY", 			new Boolean[] {false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("GEOMETRYCOLLECTION", new Boolean[] {false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("LINESTRING", 		new Boolean[] {false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("MULTILINESTRING", new Boolean[] {false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("MULTIPOINT", new Boolean[] {false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("MULTIPOLYGON", new Boolean[] {false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("POINT", new Boolean[] {false, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("POLYGON", new Boolean[] {false, true, true, true, false, false, false, false, true});
+		
+		mySqlDataType.put("BIGINT", 			new Boolean[]{true, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("DECIMAL", 			new Boolean[]{false, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("DOUBLE", 			new Boolean[]{false, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("FLOAT", 				new Boolean[]{false, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("INT", 				new Boolean[]{true, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("MEDIUMINT", 			new Boolean[]{true, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("REAL", 				new Boolean[]{false, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("SMALLINT", 			new Boolean[]{true, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("TINYINT", 			new Boolean[]{true, true, true, true, false, true, true, true, true});
+
+		mySqlDataType.put("CHAR", 				new Boolean[]{true, true, true, true, true, false, false, false, true});
+		mySqlDataType.put("NCHAR", 				new Boolean[]{true, true, true, true, true, false, false, false, true});
+		mySqlDataType.put("NVARCHAR", 			new Boolean[]{true, true, true, true, true, false, false, false, true});
+		mySqlDataType.put("VARCHAR", 			new Boolean[]{true, true, true, true, true, false, false, false, true});
+
+		mySqlDataType.put("LONGTEXT", 			new Boolean[]{false, true, true, true, true, false, false, false, true});
+		mySqlDataType.put("MEDIUMTEXT", 		new Boolean[]{false, true, true, true, true, false, false, false, true});
+		mySqlDataType.put("TEXT", 				new Boolean[]{true, true, true, true, true, false, false, false, true});
+		mySqlDataType.put("TINYTEXT", 			new Boolean[]{false, true, true, true, true, false, false, false, true});
+
+		mySqlDataType.put("BIT", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("BOOLEAN", 			new Boolean[]{false, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("ENUM", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
+
+		//mySqlDataType.put("INTEGER", 			new Boolean[]{true});
+		//mySqlDataType.put("DEC", 				new Boolean[]{true});
+		//mySqlDataType.put("NUMERIC", 			new Boolean[]{true});
+		//mySqlDataType.put("FIXED", 				new Boolean[]{true});
+		//mySqlDataType.put("DOUBLE PRECISION", 	new Boolean[]{true});
+		//mySqlDataType.put("BOOL", 				new Boolean[]{false});
 
 	}
 
@@ -180,6 +210,28 @@ public class Database {
 	public String getConnectionID() {
 		return user + "@" + host;
 	}
+	
+	public String getDefaultCharset() {
+		Query query = new Query(this);
+		String defaultCharset = "";
+		query.executeQuery("SHOW VARIABLES LIKE  'character_set_database';");
+		query.next();
+		defaultCharset = query.getString("Value");
+		query.close();
+		
+		return defaultCharset;
+	}
+	
+	public String getDefaultCharset(String charset) {
+		Query query = new Query(this);
+		String defaultCollation = "";
+		query.executeQuery("SHOW CHARACTER SET WHERE CHARSET = '" + charset + "';");
+		query.next();
+		defaultCollation = query.getString("Value");
+		query.close();
+		
+		return defaultCollation;
+	}	
 
 	public void setSelectedTable(String db, String table) {
 		setSelectedDatabase(db);

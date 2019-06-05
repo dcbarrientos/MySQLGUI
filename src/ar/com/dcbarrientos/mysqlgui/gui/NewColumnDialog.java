@@ -32,7 +32,9 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.ResourceBundle;
 
+import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -41,11 +43,14 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.db.Query;
@@ -57,8 +62,9 @@ import ar.com.dcbarrientos.mysqlgui.model.ColumnModel;
  */
 public class NewColumnDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
-
+//TODO: pasar los textos a resource.
 	private Database database;
+	private ResourceBundle resource;
 	private ColumnModel columnModel = null;
 	private HashMap<String, String> charsetList;
 
@@ -76,7 +82,7 @@ public class NewColumnDialog extends JDialog {
 	private JComboBox<String> cbCharset;
 	private JComboBox<String> cbCollation;
 	private JLabel lblDefault;
-	private JTextField textField_2;
+	private JTextField txtDefault;
 	private JCheckBox chkNotNull;
 	private JCheckBox chkUnique;
 	private JCheckBox chkBinary;
@@ -86,24 +92,30 @@ public class NewColumnDialog extends JDialog {
 	private JLabel lblComents;
 	private JScrollPane scrollPane;
 	private JTextPane txtComments;
+	private JCheckBox chkGenerated;
+	private ButtonGroup bGGenerated;
+	private JRadioButton rdVirtual;
+	private JRadioButton rdStored;
 
 	/**
 	 * @wbp.parser.constructor
 	 */
-	public NewColumnDialog(Database database) {
+	public NewColumnDialog(Database database, Ventana ventana) {
 		this.database = database;
+		this.resource = ventana.resource;
 		initComponents();
 	}
 
-	public NewColumnDialog(Database database, ColumnModel columnModel) {
-		this(database);
+	public NewColumnDialog(Database database, Ventana ventana, ColumnModel columnModel) {
+		this(database, ventana);
 		this.columnModel = columnModel;
 		loadColumnData();
 	}
 
 	private void initComponents() {
-		setPreferredSize(new Dimension(470, 350));
-
+		setPreferredSize(new Dimension(470, 375));
+		setTitle(resource.getString("NewColumnDialog.title"));
+		
 		panel = new JPanel();
 		panel.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 
@@ -124,12 +136,11 @@ public class NewColumnDialog extends JDialog {
 		GroupLayout groupLayout = new GroupLayout(getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+						.addComponent(panel, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 434, Short.MAX_VALUE)
 						.addGroup(groupLayout.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(panel, GroupLayout.PREFERRED_SIZE, 434, Short.MAX_VALUE))
-						.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
 							.addComponent(btnAccept, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(btnCancel, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)))
@@ -137,14 +148,14 @@ public class NewColumnDialog extends JDialog {
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
+				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 264, GroupLayout.PREFERRED_SIZE)
+					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(btnCancel)
 						.addComponent(btnAccept))
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addContainerGap())
 		);
 
 		lblName = new JLabel("Name:");
@@ -159,7 +170,7 @@ public class NewColumnDialog extends JDialog {
 		cbDataType = new JComboBox<String>();
 		cbDataType.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent event) {
-				txtLength.setEnabled(database.mySqlDataType.get(cbDataType.getSelectedItem()));
+				cbDataTypeChanged();
 			}
 		});
 
@@ -183,32 +194,60 @@ public class NewColumnDialog extends JDialog {
 		
 		lblDefault = new JLabel("Default:");
 		
-		textField_2 = new JTextField();
-		textField_2.setColumns(10);
+		txtDefault = new JTextField();
+		txtDefault.setColumns(10);
 		
 		chkNotNull = new JCheckBox("Not null");
-		
 		chkUnique = new JCheckBox("Unique");
-		
 		chkBinary = new JCheckBox("Binary");
-		
 		chkUnsigned = new JCheckBox("Unsigned");
-		
 		chkZerofill = new JCheckBox("Zerofill");
-		
 		chkAutoIncrement = new JCheckBox("Auto increment");
 		
 		lblComents = new JLabel("Coments:");
 		
 		scrollPane = new JScrollPane();
+		
+		chkGenerated = new JCheckBox("Generated");
+		
+		chkGenerated.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				rdVirtual.setEnabled(chkGenerated.isSelected());
+				rdStored.setEnabled(chkGenerated.isSelected());
+				chkBinary.setEnabled(!chkGenerated.isSelected());
+				chkNotNull.setEnabled(!chkGenerated.isSelected());
+				if(chkGenerated.isSelected())
+					lblDefault.setText("Expression:");
+				else
+					lblDefault.setText("Default:");
+			}
+		});
+		
+		rdVirtual = new JRadioButton("Virtual");
+		rdVirtual.setSelected(true);
+		rdVirtual.setEnabled(false);
+		rdStored = new JRadioButton("Stored");
+		rdStored.setSelected(false);
+		rdStored.setEnabled(false);
+		
+		bGGenerated = new ButtonGroup();
+		bGGenerated.add(rdStored);
+		bGGenerated.add(rdVirtual);
+		
 		GroupLayout gl_panel = new GroupLayout(panel);
 		gl_panel.setHorizontalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, gl_panel.createSequentialGroup()
+			gl_panel.createParallelGroup(Alignment.TRAILING)
+				.addGroup(Alignment.LEADING, gl_panel.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
-						.addComponent(scrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
-						.addGroup(Alignment.LEADING, gl_panel.createSequentialGroup()
+					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel.createSequentialGroup()
+							.addComponent(chkGenerated)
+							.addPreferredGap(ComponentPlacement.UNRELATED)
+							.addComponent(rdVirtual)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(rdStored))
+						.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 410, Short.MAX_VALUE)
+						.addGroup(gl_panel.createSequentialGroup()
 							.addComponent(chkNotNull)
 							.addPreferredGap(ComponentPlacement.UNRELATED)
 							.addComponent(chkUnique)
@@ -223,7 +262,7 @@ public class NewColumnDialog extends JDialog {
 						.addGroup(gl_panel.createSequentialGroup()
 							.addComponent(lblName)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 359, Short.MAX_VALUE))
+							.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE))
 						.addGroup(gl_panel.createSequentialGroup()
 							.addComponent(lblDatatype)
 							.addPreferredGap(ComponentPlacement.RELATED)
@@ -231,20 +270,20 @@ public class NewColumnDialog extends JDialog {
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(lblLength)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(txtLength, GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE))
+							.addComponent(txtLength, GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE))
 						.addGroup(gl_panel.createSequentialGroup()
 							.addComponent(lblCharset)
 							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(cbCharset, 0, 136, Short.MAX_VALUE)
+							.addComponent(cbCharset, 0, 152, Short.MAX_VALUE)
 							.addPreferredGap(ComponentPlacement.UNRELATED)
 							.addComponent(lblCollation)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(cbCollation, GroupLayout.PREFERRED_SIZE, 147, GroupLayout.PREFERRED_SIZE))
-						.addGroup(Alignment.LEADING, gl_panel.createSequentialGroup()
+						.addGroup(gl_panel.createSequentialGroup()
 							.addComponent(lblDefault)
 							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(textField_2, GroupLayout.DEFAULT_SIZE, 345, Short.MAX_VALUE))
-						.addComponent(lblComents, Alignment.LEADING))
+							.addComponent(txtDefault, GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE))
+						.addComponent(lblComents))
 					.addContainerGap())
 		);
 		gl_panel.setVerticalGroup(
@@ -269,7 +308,7 @@ public class NewColumnDialog extends JDialog {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblDefault)
-						.addComponent(textField_2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(txtDefault, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(chkNotNull)
@@ -279,9 +318,14 @@ public class NewColumnDialog extends JDialog {
 						.addComponent(chkZerofill)
 						.addComponent(chkAutoIncrement))
 					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(chkGenerated)
+						.addComponent(rdVirtual)
+						.addComponent(rdStored))
+					.addGap(3)
 					.addComponent(lblComents)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
+					.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
 					.addContainerGap())
 		);
 		
@@ -292,6 +336,18 @@ public class NewColumnDialog extends JDialog {
 		pack();
 		setLocationRelativeTo(null);
 		initData();
+	}
+	
+	private void cbDataTypeChanged() {
+		Boolean[] attribs = database.mySqlDataType.get(cbDataType.getSelectedItem());
+		txtLength.setEnabled(attribs[database.DATATYPE_LENTH_INDEX]);
+		chkNotNull.setEnabled(attribs[database.DATATYPE_NOT_NULL_INDEX]);
+		chkUnique.setEnabled(attribs[database.DATATYPE_UNIQUE_INDEX]);
+		chkBinary.setEnabled(attribs[database.DATATYPE_BINARY_INDEX]);
+		chkUnsigned.setEnabled(attribs[database.DATATYPE_UNSIGNED_INDEX]);
+		chkZerofill.setEnabled(attribs[database.DATATYPE_ZEROFILL_INDEX]);
+		chkAutoIncrement.setEnabled(attribs[database.DATATYPE_AUTOINCREMENT_INDEX]);
+
 	}
 
 	private void initData() {
@@ -334,6 +390,7 @@ public class NewColumnDialog extends JDialog {
 		columnModel.name = txtName.getText();
 		columnModel.dataType = (String)cbDataType.getSelectedItem();
 		columnModel.length = txtLength.getText();
+		columnModel.columnDefault = txtDefault.getText();
 		columnModel.charset = (String)cbCharset.getSelectedItem();
 		columnModel.collate = (String)cbCollation.getSelectedItem();
 		columnModel.notNull = chkNotNull.isSelected();
@@ -343,6 +400,9 @@ public class NewColumnDialog extends JDialog {
 		columnModel.zerofill = chkZerofill.isSelected();
 		columnModel.autoincrement = chkAutoIncrement.isSelected();
 		columnModel.comment = txtComments.getText();
+		columnModel.generated = chkGenerated.isSelected();
+		columnModel.virtual = rdVirtual.isSelected();
+		columnModel.stored = rdStored.isSelected();
 		
 		dispose();
 	}

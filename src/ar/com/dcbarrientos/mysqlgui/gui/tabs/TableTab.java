@@ -28,10 +28,14 @@ package ar.com.dcbarrientos.mysqlgui.gui.tabs;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Vector;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -66,7 +70,7 @@ public class TableTab extends DatabaseElement {
 	public String title = resource.getString("TableTab.title");
 	private boolean isNew;
 	private String sqlCreateTable;
-	
+
 	public static final int INFO_INDEX = 0;
 	public static final int COLUMNS_INDEX = 1;
 	public static final int INDEXES_INDEX = 2;
@@ -91,7 +95,7 @@ public class TableTab extends DatabaseElement {
 	private JTextField txtTableName;
 	private JComboBox<String> cbCharset;
 	private JComboBox<String> cbCollation;
-	private JTextArea txtDescription;
+	private JTextArea txtComment;
 
 	private JTabbedPane tabPane;
 	private TableInfoTab tableInfoTab;
@@ -104,6 +108,9 @@ public class TableTab extends DatabaseElement {
 	private TableOptionsTab tableOptionsTab;
 	private TableDDLTab tableDDLTab;
 	private TableDataTab tableDataTab;
+	private JPanel buttonPanel;
+	private JButton btnApply;
+	private JButton btnCancel;
 
 	Vector<DatabaseElement> tabList;
 
@@ -142,16 +149,17 @@ public class TableTab extends DatabaseElement {
 		txtAutoIncrement = new JTextField();
 		txtAutoIncrement.setColumns(10);
 
-		cbEngine = new JComboBox<String>(getComboList(Query.SQL_ENGINE_LIST, "Engine"));
+		cbEngine = new JComboBox<String>(getComboList(Query.SQL_ENGINE_LIST, "Engine", ""));
 
 		txtTableName = new JTextField();
 		txtTableName.setColumns(10);
 
-		cbCharset = new JComboBox<String>(getComboList(Query.SQL_CHARSET_LIST, "Charset"));
+		cbCharset = new JComboBox<String>(getComboList(Query.SQL_CHARSET_LIST, "Charset", "Default Charset"));
 
-		cbCollation = new JComboBox<String>(getComboList(Query.SQL_COLLATION_LIST, "COLLATION_NAME"));
+		cbCollation = new JComboBox<String>(
+				getComboList(Query.SQL_COLLATION_LIST, "COLLATION_NAME", "Default Collation"));
 
-		txtDescription = new JTextArea();
+		txtComment = new JTextArea();
 		GroupLayout gl_borderTableOptions = new GroupLayout(borderTableOptions);
 		gl_borderTableOptions.setHorizontalGroup(gl_borderTableOptions.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_borderTableOptions.createSequentialGroup().addContainerGap()
@@ -160,7 +168,7 @@ public class TableTab extends DatabaseElement {
 								.addComponent(lblCharset).addComponent(lblCollation).addComponent(lblDescription))
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addGroup(gl_borderTableOptions.createParallelGroup(Alignment.LEADING)
-								.addComponent(txtDescription, GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
+								.addComponent(txtComment, GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
 								.addComponent(cbEngine, GroupLayout.PREFERRED_SIZE, 170, GroupLayout.PREFERRED_SIZE)
 								.addComponent(txtAutoIncrement, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 										GroupLayout.PREFERRED_SIZE)
@@ -194,10 +202,31 @@ public class TableTab extends DatabaseElement {
 										GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addGroup(gl_borderTableOptions.createParallelGroup(Alignment.BASELINE)
-								.addComponent(lblDescription).addComponent(txtDescription, GroupLayout.PREFERRED_SIZE,
-										52, GroupLayout.PREFERRED_SIZE))
+								.addComponent(lblDescription)
+								.addComponent(txtComment, GroupLayout.PREFERRED_SIZE, 52, GroupLayout.PREFERRED_SIZE))
 						.addContainerGap(140, Short.MAX_VALUE)));
 		borderTableOptions.setLayout(gl_borderTableOptions);
+
+		buttonPanel = new JPanel();
+		buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+
+		add(buttonPanel, BorderLayout.SOUTH);
+
+		btnApply = new JButton(resource.getString("TableTab.btnApply"));
+		btnApply.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				btnApplyMouseClicked(e);
+			}
+		});
+		buttonPanel.add(btnApply);
+
+		btnCancel = new JButton(resource.getString("TableTab.btnCancel"));
+		btnCancel.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				btnCancelMouseClicked(e);
+			}
+		});
+		buttonPanel.add(btnCancel);
 
 		tabPane = new JTabbedPane();
 		add(tabPane, BorderLayout.CENTER);
@@ -248,7 +277,7 @@ public class TableTab extends DatabaseElement {
 			txtTableName.setText(selectedTable);
 
 			String sql = String.format(Query.SQL_SHOW_CREATE_TABLE, selectedDB, selectedTable);
-			//String txtCreate = "";
+			// String txtCreate = "";
 			Query query = new Query(database);
 			if (query.executeQuery(sql)) {
 				query.next();
@@ -256,18 +285,70 @@ public class TableTab extends DatabaseElement {
 			}
 			query.close();
 
-			if (sqlCreateTable.length() > 0) 
+			if (sqlCreateTable.length() > 0)
 				processCreateTable();
-			
+
 		}
 	}
 
 	private void processCreateTable() {
-		//Definición de los registros.
-		//loadColumnsDefinition(sqlCreateTable.substring(sqlCreateTable.indexOf("\n") + 1, sqlCreateTable.lastIndexOf(")")).trim());
-		tableColumnsTab.setDefinition(sqlCreateTable.substring(sqlCreateTable.indexOf("\n") + 1, sqlCreateTable.lastIndexOf(")")).trim());
-		
+		// Definición de los registros.
+		// loadColumnsDefinition(sqlCreateTable.substring(sqlCreateTable.indexOf("\n") +
+		// 1, sqlCreateTable.lastIndexOf(")")).trim());
+		loadTableDefinition(
+				sqlCreateTable.substring(sqlCreateTable.lastIndexOf(")") + 1, sqlCreateTable.length()).trim());
+		tableColumnsTab.setDefinition(
+				sqlCreateTable.substring(sqlCreateTable.indexOf("\n") + 1, sqlCreateTable.lastIndexOf(")")).trim());
+
 		tableDDLTab.setSQL(sqlCreateTable);
+	}
+
+	private void loadTableDefinition(String tableAttribs) {
+		clean();
+		String[] attribs = tableAttribs.split(" ");
+		String attrib;
+		String value;
+		int i = 0;
+		while (i < attribs.length) {
+			String[] tokens = attribs[i].split("=");
+			attrib = tokens[0];
+			if (tokens.length > 1)
+				value = tokens[1];
+			else {
+				System.out.println(tokens);
+				i++;
+				tokens = attribs[i].split("=");
+				attrib += " " + tokens[0];
+				value = tokens[1];
+			}
+
+			switch (attrib) {
+			case "ENGINE":
+				cbEngine.setSelectedItem(value);
+				break;
+			case "AUTO_INCREMENT":
+				txtAutoIncrement.setText(value);
+				break;
+			case "DEFAULT CHARSET":
+				cbCharset.getModel().setSelectedItem(value);
+				break;
+			case "COLLATE":
+				cbCollation.setSelectedItem(value);
+				break;
+			case "COMMENT":
+				String comment = value.substring(1, value.length());
+				while (i < attribs.length && !comment.endsWith("'")) {
+					i++;
+					comment += " " + attribs[i];
+				}
+				txtComment.setText(comment.substring(0, comment.length() - 1));
+				break;
+			default:
+				break;
+			}
+
+			i++;
+		}
 	}
 
 	private void loadColumnsDefinition(String definition) {
@@ -284,13 +365,19 @@ public class TableTab extends DatabaseElement {
 
 	}
 
-	private String[] getComboList(String sql, String columnName) {
+	private String[] getComboList(String sql, String columnName, String defaultValue) {
 		Query query = new Query(database);
 		String[] lista = null;
 
 		if (query.executeQuery(sql)) {
-			lista = new String[query.getRowCount()];
 			int i = 0;
+			if (defaultValue.length() > 0) {
+				lista = new String[query.getRowCount() + 1];
+				lista[0] = defaultValue;
+				i++;
+			} else
+				lista = new String[query.getRowCount()];
+
 			while (query.next()) {
 				lista[i] = query.getString(columnName);
 				i++;
@@ -304,8 +391,8 @@ public class TableTab extends DatabaseElement {
 	public void setSelectedTable(String selectedDb, String selectedTable) {
 		this.selectedDB = selectedDb;
 		this.selectedTable = selectedTable;
-		
-		for(DatabaseElement element: tabList) {
+
+		for (DatabaseElement element : tabList) {
 			element.setSelectedTable(selectedDB, selectedTable);
 		}
 
@@ -314,6 +401,24 @@ public class TableTab extends DatabaseElement {
 
 	public void selectTab(int index) {
 		tabPane.setSelectedIndex(index);
+	}
+
+	public void btnApplyMouseClicked(MouseEvent e) {
+
+	}
+
+	public void btnCancelMouseClicked(MouseEvent e) {
+
+	}
+
+	private void clean() {
+		// TODO pasar a resource.
+		// txtTableName.setText("New Table");
+		cbEngine.setSelectedItem("InnoDB");
+		txtAutoIncrement.setText("");
+		cbCharset.setSelectedIndex(0);
+		cbCollation.setSelectedIndex(0);
+		txtComment.setText("");
 	}
 
 	@Override

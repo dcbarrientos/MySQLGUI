@@ -121,7 +121,7 @@ public class TableColumnsTab extends DatabaseElement {
 		add(scroll, BorderLayout.CENTER);
 
 		toolBar = new JToolBar();
-		
+		toolBar.setOrientation(JToolBar.VERTICAL);
 		editButton = new JButton("Edit");
 		editButton.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
@@ -162,7 +162,7 @@ public class TableColumnsTab extends DatabaseElement {
 		});
 		toolBar.add(downButton);
 		
-		add(toolBar, BorderLayout.SOUTH);
+		add(toolBar, BorderLayout.WEST);
 	}
 
 	protected void loadData() {
@@ -300,7 +300,7 @@ public class TableColumnsTab extends DatabaseElement {
 
 	private void addButtonMouseClicked(MouseEvent e) {
 		//TODO: falta implementar.
-		NewColumnDialog nc = new NewColumnDialog(database);
+		NewColumnDialog nc = new NewColumnDialog(database, ventana);
 		System.out.println(nc.showDialog());
 	}
 
