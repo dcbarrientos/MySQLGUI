@@ -32,6 +32,7 @@ package ar.com.dcbarrientos.mysqlgui.model;
  */
 public class ColumnModel {
 	public String name;
+	public String originalName;
 	public String dataType;
 	public String length;
 	public String collate;

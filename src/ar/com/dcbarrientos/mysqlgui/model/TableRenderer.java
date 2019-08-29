@@ -28,6 +28,8 @@ package ar.com.dcbarrientos.mysqlgui.model;
 
 import java.awt.Component;
 
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -44,6 +46,14 @@ public class TableRenderer extends DefaultTableCellRenderer{
             boolean isSelected, boolean hasFocus, int row, int column) {
 		if(value instanceof JLabel) {
 			return (JLabel) value;
+		}
+		
+		if(value instanceof JCheckBox) {
+			return (JCheckBox) value;
+		}
+		
+		if (value instanceof JComboBox<?>) {
+			return (JComboBox<?>) value;
 		}
 		
 		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);

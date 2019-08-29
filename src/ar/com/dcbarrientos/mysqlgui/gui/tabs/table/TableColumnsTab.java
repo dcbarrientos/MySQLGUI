@@ -29,6 +29,7 @@ package ar.com.dcbarrientos.mysqlgui.gui.tabs.table;
 import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.HashMap;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
@@ -74,7 +75,7 @@ public class TableColumnsTab extends DatabaseElement {
 	private final int COLUMN_EXPRESSION_INDEX = 11;
 	private final int COLUMN_COMMENT_INDEX = 12;
 	private final int COLUMN_COLLATION_INDEX = 13;
-	
+
 	private final String columnIcon = "/images/campo_secundario.gif";
 	private final String primaryKeyIcon = "/images/campo_primario.gif";
 
@@ -82,12 +83,12 @@ public class TableColumnsTab extends DatabaseElement {
 			Boolean.class, Boolean.class, String.class, String.class, String.class, String.class, String.class,
 			String.class };
 
-	private int columnOrder = 1;
+//	private int columnOrder = 1;
 
 	private String[] columnsName;
 	private Vector<Object[]> data;
-	private Vector<ColumnModel> definitionColumns;
-	private Vector<ColumnModel> alterColumns;
+	public Vector<ColumnModel> definitionColumns;
+	private HashMap<Integer, String> alterColumns;
 
 	private JScrollPane scroll;
 	private JTable table;
@@ -99,9 +100,12 @@ public class TableColumnsTab extends DatabaseElement {
 	private JButton upButton;
 	private JButton downButton;
 
-	public TableColumnsTab(Ventana ventana, Database database) {
+	private boolean isNew;
+
+	public TableColumnsTab(Ventana ventana, Database database, boolean isNew) {
 		super(ventana, database);
-		columnOrder = 1;
+		this.isNew = isNew;
+//		columnOrder = 1;
 
 		initComponents();
 	}
@@ -115,6 +119,11 @@ public class TableColumnsTab extends DatabaseElement {
 		setLayout(new BorderLayout());
 		table = new JTable();
 		table.setDefaultRenderer(JLabel.class, new TableRenderer());
+
+		tableModel = new TableModel();
+		tableModel.setColumnsClasses(classes);
+		tableModel.setColumnHeaders(columnsName);
+
 		scroll = new JScrollPane();
 		scroll.setViewportView(table);
 
@@ -153,7 +162,7 @@ public class TableColumnsTab extends DatabaseElement {
 			}
 		});
 		toolBar.add(upButton);
-		
+
 		downButton = new JButton("Down");
 		downButton.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
@@ -161,18 +170,15 @@ public class TableColumnsTab extends DatabaseElement {
 			}
 		});
 		toolBar.add(downButton);
-		
+
 		add(toolBar, BorderLayout.WEST);
 	}
 
 	protected void loadData() {
 		definitionColumns = new Vector<ColumnModel>();
-		alterColumns = new Vector<ColumnModel>();
-		
+		alterColumns = new HashMap<Integer, String>();
+
 		if (definition != null) {
-			tableModel = new TableModel();
-			tableModel.setColumnsClasses(classes);
-			tableModel.setColumnHeaders(columnsName);
 
 			String[] lineas = definition.split("\n");
 			data = new Vector<Object[]>();
@@ -186,75 +192,62 @@ public class TableColumnsTab extends DatabaseElement {
 				}
 			}
 
-			tableModel.setData(data);
+			// Generar loadTableData a partir de aca
+//			tableModel.setData(data);
 			table.setModel(tableModel);
-			columnOrder = 1;
+//			columnOrder = 1;
 		}
 		showDefinition();
+		loadTableData();
 	}
-	
+
 	private void showDefinition() {
-		for(ColumnModel c: definitionColumns)
+		for (ColumnModel c : definitionColumns)
 			System.out.println(c.getDefinition());
 	}
 
 	public void addRecord(String linea) {
 		String[] datos = linea.split(" ");
-		Object[] records = new Object[COLUMN_COUNT];
 		String dato;
 		ColumnModel columnModel = new ColumnModel();
 
-		// Indice de la columna
-		JLabel campo = new JLabel(String.valueOf(columnOrder));
-		if(columnOrder == 1)
-			campo.setIcon(new ImageIcon(getClass().getResource(primaryKeyIcon)));
-		else
-			campo.setIcon(new ImageIcon(getClass().getResource(columnIcon)));
-		
-		records[COLUMN_ORDER_INDEX] = campo;
-		
-		columnOrder++;
-
+		int i = 0;
 		// Nombre del campo
-		records[COLUMN_NAME_INDEX] = datos[0].substring(1, datos[0].length() - 1);
-		columnModel.name = datos[0].substring(1, datos[0].length() - 1);
-
+		columnModel.name = datos[i];
+		while(datos[i].charAt(datos[i].length()-1) != '`') {
+			i++;
+			columnModel.name += " " + datos[i]; 
+		}
+		columnModel.name = columnModel.name.substring(1, columnModel.name.length() - 1);
+		i++;
+		
 		// Tipo y longitud del dato
-		dato = datos[1].trim();
+		dato = datos[i].trim();
 		if (dato.indexOf("(") > 0) {
-			records[COLUMN_DATA_TYPE_INDEX] = dato.substring(0, dato.indexOf("("));
-			columnModel.dataType = dato.substring(0, dato.indexOf("("));
-			
-			records[COLUMN_DATA_LENGTH_INDEX] = dato.substring(dato.indexOf("(") + 1, dato.indexOf(")"));
+			columnModel.dataType = dato.substring(0, dato.indexOf("(")).toUpperCase();
 			columnModel.length = dato.substring(dato.indexOf("(") + 1, dato.indexOf(")"));
 		} else {
-			columnModel.dataType = dato;
-			records[COLUMN_DATA_TYPE_INDEX] = dato;
-			records[COLUMN_DATA_LENGTH_INDEX] = "";
+			columnModel.dataType = dato.toUpperCase();
 		}
-
-		int i = 2;
+		
+		i++;
 		while (i < datos.length) {
 			switch (datos[i].toUpperCase().trim()) {
 			case "NOT":
 				i++;
-				records[COLUMN_NOT_NULL_INDEX] = true;
 				columnModel.notNull = true;
 				break;
 			case "NULL":
-				records[COLUMN_NOT_NULL_INDEX] = false;
 				columnModel.notNull = false;
 				break;
 			case "DEFAULT":
 				// TODO: Sacar o dejar las '' dependiendo del dato que lo usa. BIGINT sin,
 				// VARCHAR con.
 				i++;
-				records[COLUMN_DEFAULT_INDEX] = datos[i];
 				columnModel.columnDefault = datos[i];
 				break;
 			case "AUTO_INCREMENT":
-				//TODO: Sólo para integers y tipo floating-point 
-				records[COLUMN_AUTO_INCREMENT_INDEX] = true;
+				// TODO: Sólo para integers y tipo floating-point
 				columnModel.autoincrement = true;
 				break;
 			case "BINARY":
@@ -262,21 +255,17 @@ public class TableColumnsTab extends DatabaseElement {
 //				tableStructure.setRowSelectionInterval(selectedRow, selectedRow);
 				break;
 			case "UNSIGNED":
-				records[COLUMN_UNSIGNED_INDEX] = true;
 				columnModel.unsigned = true;
 				break;
 			case "ZEROFILL":
-				records[COLUMN_ZEROFILL_INDEX] = true;
 				columnModel.zerofill = true;
 				break;
 			case "COMMENT":
 				i++;
-				records[COLUMN_COMMENT_INDEX] = datos[i];
 				columnModel.comment = datos[i];
 				break;
 			case "COLLATE":
 				i++;
-				records[COLUMN_COLLATION_INDEX] = datos[i];
 				columnModel.collate = datos[i];
 				break;
 			case "CHARACTER":
@@ -287,35 +276,137 @@ public class TableColumnsTab extends DatabaseElement {
 			i++;
 		}
 		definitionColumns.add(columnModel);
-		data.add(records);
 	}
 
 	public void setDefinition(String definition) {
 		this.definition = definition;
 	}
-	
+
 	private void editButtonMouseClicked(MouseEvent e) {
-		//TODO: falta implementar.
+		// TODO: falta implementar.
+		int fila = table.getSelectedRow();
+		if (fila >= 0) {
+			String columnName = (String) table.getValueAt(fila, COLUMN_NAME_INDEX);
+			NewColumnDialog nc = new NewColumnDialog(database, ventana, getColumnModel(columnName));
+			ColumnModel cm = nc.showDialog();
+			if (cm != null) {
+				int in = replaceIndex(definitionColumns, columnName, cm);
+				if (!alterColumns.containsKey(in)) {
+					alterColumns.put(in, columnName);
+				}
+
+				// TODO: Lo que falta segun TableIndexesTab
+				loadTableData();
+				tableModel.fireTableDataChanged();
+				mostrarLista(getDefinitionsForSQL());
+			}
+		}
+	}
+
+	private void mostrarLista(Vector<ColumnModel> definitionsForSQL) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	private void addButtonMouseClicked(MouseEvent e) {
-		//TODO: falta implementar.
+		// TODO: falta implementar.
 		NewColumnDialog nc = new NewColumnDialog(database, ventana);
-		System.out.println(nc.showDialog());
+		ColumnModel cm = nc.showDialog();
+		if (cm != null) {
+
+		}
 	}
 
 	private void deleteButtonMouseClicked(MouseEvent e) {
-		//TODO: falta implementar.
+		// TODO: falta implementar.
 	}
 
 	private void upButtonMouseClicked(MouseEvent e) {
-		//TODO: falta implementar.
+		// TODO: falta implementar.
 	}
 
 	private void downButtonMouseClicked(MouseEvent e) {
-		//TODO: falta implementar.
+		// TODO: falta implementar.
 	}
 
+	private int replaceIndex(Vector<ColumnModel> list, String columnName, ColumnModel im) {
+		int index = -1;
+
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).name.equals(columnName)) {
+				index = i;
+				break;
+			}
+		}
+		if (index < 0) {
+			list.add(im);
+			index = list.size() - 1;
+		} else
+			list.set(index, im);
+
+		return index;
+	}
+
+	public Vector<ColumnModel> getDefinitionsForSQL() {
+		Vector<ColumnModel> definitions = null;
+		if (isNew)
+			return definitionColumns;
+		else {
+			definitions = new Vector<ColumnModel>();
+			for (int i : alterColumns.keySet()) {
+				definitionColumns.get(i).originalName = alterColumns.get(i);
+				definitions.add(definitionColumns.get(i));
+			}
+		}
+
+		return definitions;
+	}
+
+	private void loadTableData() {
+		data = new Vector<Object[]>();
+
+		for (int i = 0; i < definitionColumns.size(); i++) {
+			Object[] record = new Object[COLUMN_COUNT];
+			ColumnModel column = definitionColumns.get(i);
+
+			// Indice de la columna
+			JLabel campo = new JLabel(String.valueOf(i + 1));
+			if (i == 0)
+				campo.setIcon(new ImageIcon(getClass().getResource(primaryKeyIcon)));
+			else
+				campo.setIcon(new ImageIcon(getClass().getResource(columnIcon)));
+
+			record[COLUMN_ORDER_INDEX] = campo;
+
+			// Nombre del campo
+			record[COLUMN_NAME_INDEX] = column.name;
+
+			// Tipo y longitud del dato
+			record[COLUMN_DATA_TYPE_INDEX] = column.dataType;
+			record[COLUMN_DATA_LENGTH_INDEX] = column.length;
+
+			record[COLUMN_NOT_NULL_INDEX] = column.notNull;
+			record[COLUMN_DEFAULT_INDEX] = column.columnDefault;
+			record[COLUMN_AUTO_INCREMENT_INDEX] = column.autoincrement;
+			record[COLUMN_UNSIGNED_INDEX] = column.unsigned;
+			record[COLUMN_ZEROFILL_INDEX] = column.zerofill;
+			record[COLUMN_COMMENT_INDEX] = column.comment;
+			record[COLUMN_COLLATION_INDEX] = column.collate;
+
+			data.add(record);
+		}
+		tableModel.setData(data);
+	}
+	
+	private ColumnModel getColumnModel(String columnName) {
+		for(int i = 0; i < definitionColumns.size(); i++) {
+			if(definitionColumns.get(i).name.equals(columnName)) {
+				return definitionColumns.get(i);
+			}
+		}
+		
+		return null;
+	}
 }
 
 //CREATE TABLE `cartas` (

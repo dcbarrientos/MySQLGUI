@@ -16,62 +16,61 @@
  */
 
 /** 
- * DatabaseElement.java
+ * CreateTable.java
  *
  * Description:	    <Descripcion>
  * @author			Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
- * Created on 1 feb. 2019, 21:46:49 
+ * Created on 23 ago. 2019, 16:45:59 
  */
 
 package ar.com.dcbarrientos.mysqlgui.gui;
 
+import java.awt.BorderLayout;
 import java.util.ResourceBundle;
 
-import javax.swing.JPanel;
+import javax.swing.JDialog;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.TableTab;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public abstract class DatabaseElement extends JPanel{
+public class CreateTableDialog extends JDialog{
 	private static final long serialVersionUID = 1L;
 	
-	protected Database database;
-	protected Ventana ventana;
-	protected ResourceBundle resource;
-	
-	protected String selectedDB;
-	protected String selectedTable;
+	private Ventana ventana;
+	private Database database;
+	private ResourceBundle resource;
+	private TableTab tableTab;
 		
-	public DatabaseElement(Ventana ventana, Database database) {
+	public CreateTableDialog() {
+		
+	}
+	
+	public CreateTableDialog(Ventana ventana, Database database) {
 		this.ventana = ventana;
 		this.database = database;
 		this.resource = ventana.resource;
-	}
-	
-	public void setSelectedDatabase(String db) {
-		selectedDB = db;
 		
-		refresh();
+		initComponents();
 	}
 	
-	public void setSelectedTable(String db, String table) {
-		selectedTable = table;
-		setSelectedDatabase(db);
+	public void initComponents() {
+		setTitle(resource.getString("CreateTableDialog.title"));
+		setLayout(new BorderLayout());
 		
-		refresh();
-	}
-	
-	public void refresh() {
-		loadData();
-		revalidate();
-		repaint();
-	}
-	
-	protected void loadData() {
+		tableTab = new TableTab(ventana, database, true);
+		add(tableTab, BorderLayout.CENTER);
 		
+		setSize(300, 200);
+		setLocationRelativeTo(null);
+		setModal(true);
+	}
+	
+	public void showDialog() {
+		setVisible(true);
 	}
 }

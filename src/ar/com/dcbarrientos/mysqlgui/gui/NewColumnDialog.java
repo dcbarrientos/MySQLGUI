@@ -67,7 +67,8 @@ public class NewColumnDialog extends JDialog {
 	private ResourceBundle resource;
 	private ColumnModel columnModel = null;
 	private HashMap<String, String> charsetList;
-
+//	private boolean isNew;
+	
 	private JPanel panel;
 	private JButton btnAccept;
 	private JButton btnCancel;
@@ -103,12 +104,16 @@ public class NewColumnDialog extends JDialog {
 	public NewColumnDialog(Database database, Ventana ventana) {
 		this.database = database;
 		this.resource = ventana.resource;
+//		isNew = true;
+		
 		initComponents();
 	}
 
 	public NewColumnDialog(Database database, Ventana ventana, ColumnModel columnModel) {
 		this(database, ventana);
+//		this.isNew = false;
 		this.columnModel = columnModel;
+		
 		loadColumnData();
 	}
 
@@ -335,6 +340,7 @@ public class NewColumnDialog extends JDialog {
 		getContentPane().setLayout(groupLayout);
 		pack();
 		setLocationRelativeTo(null);
+		
 		initData();
 	}
 	
@@ -364,11 +370,26 @@ public class NewColumnDialog extends JDialog {
 		for(String key: database.mySqlDataType.keySet())
 			cbDataType.addItem(key);
 		
-		query.close();
+		query.close();		
 	}
 
 	private void loadColumnData() {
-
+		txtName.setText(columnModel.name);
+		cbDataType.setSelectedItem(columnModel.dataType);
+		txtLength.setText(columnModel.length);
+		cbCharset.setSelectedItem(columnModel.charset);
+		cbCollation.setSelectedItem(columnModel.collate);
+		txtDefault.setText(columnModel.columnDefault);
+		chkNotNull.setSelected(columnModel.notNull);
+		chkUnique.setSelected(columnModel.unique);
+		chkBinary.setSelected(columnModel.binary);
+		chkUnsigned.setSelected(columnModel.unsigned);
+		chkZerofill.setSelected(columnModel.zerofill);
+		chkAutoIncrement.setSelected(columnModel.autoincrement);
+		chkGenerated.setSelected(columnModel.generated);
+		txtComments.setText(columnModel.comment);
+		rdVirtual.setSelected(columnModel.virtual);
+		rdStored.setSelected(columnModel.stored);
 	}
 
 	private void updateCollation() {

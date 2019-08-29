@@ -45,6 +45,7 @@ import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.db.Query;
 import ar.com.dcbarrientos.mysqlgui.gui.CellRenderer;
 import ar.com.dcbarrientos.mysqlgui.gui.CopyTable;
+import ar.com.dcbarrientos.mysqlgui.gui.CreateTableDialog;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.EmptyTable;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
@@ -233,6 +234,8 @@ public class TablesPanel extends DatabaseElement {
 	protected void jbInsertRecordMouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
 		ventana.addMessage("Falta hacer");
+		CreateTableDialog ctd = new CreateTableDialog(ventana, database);
+		ctd.showDialog();
 
 	}
 

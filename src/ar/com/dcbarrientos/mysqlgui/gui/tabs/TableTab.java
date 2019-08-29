@@ -38,6 +38,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
@@ -59,6 +60,7 @@ import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableInfoTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableOptionsTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TablePartitionsTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableTriggersTab;
+import ar.com.dcbarrientos.mysqlgui.model.IndexModel;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -235,11 +237,11 @@ public class TableTab extends DatabaseElement {
 		tabList.add(tableInfoTab);
 		tabPane.insertTab(tableInfoTab.title, null, tableInfoTab, null, INFO_INDEX);
 
-		tableColumnsTab = new TableColumnsTab(ventana, database);
+		tableColumnsTab = new TableColumnsTab(ventana, database, isNew);
 		tabList.add(tableColumnsTab);
 		tabPane.insertTab(tableColumnsTab.title, null, tableColumnsTab, null, COLUMNS_INDEX);
 
-		tableIndexesTab = new TableIndexesTab(ventana, database);
+		tableIndexesTab = new TableIndexesTab(ventana, database, isNew);
 		tabList.add(tableIndexesTab);
 		tabPane.insertTab(tableIndexesTab.title, null, tableIndexesTab, null, INDEXES_INDEX);
 
@@ -297,7 +299,11 @@ public class TableTab extends DatabaseElement {
 		// 1, sqlCreateTable.lastIndexOf(")")).trim());
 		loadTableDefinition(
 				sqlCreateTable.substring(sqlCreateTable.lastIndexOf(")") + 1, sqlCreateTable.length()).trim());
+
 		tableColumnsTab.setDefinition(
+				sqlCreateTable.substring(sqlCreateTable.indexOf("\n") + 1, sqlCreateTable.lastIndexOf(")")).trim());
+
+		tableIndexesTab.setDefinition(
 				sqlCreateTable.substring(sqlCreateTable.indexOf("\n") + 1, sqlCreateTable.lastIndexOf(")")).trim());
 
 		tableDDLTab.setSQL(sqlCreateTable);
@@ -351,19 +357,19 @@ public class TableTab extends DatabaseElement {
 		}
 	}
 
-	private void loadColumnsDefinition(String definition) {
-		String[] lineas = definition.split("\n");
-
-		for (int i = 0; i < lineas.length; i++) {
-			if (lineas[i].trim().startsWith("`")) {
-				String linea = lineas[i].trim();
-				if (linea.endsWith(",") || linea.endsWith(";"))
-					linea = linea.substring(0, linea.length() - 1);
-				tableColumnsTab.addRecord(linea);
-			}
-		}
-
-	}
+//	private void loadColumnsDefinition(String definition) {
+//		String[] lineas = definition.split("\n");
+//
+//		for (int i = 0; i < lineas.length; i++) {
+//			if (lineas[i].trim().startsWith("`")) {
+//				String linea = lineas[i].trim();
+//				if (linea.endsWith(",") || linea.endsWith(";"))
+//					linea = linea.substring(0, linea.length() - 1);
+//				tableColumnsTab.addRecord(linea);
+//			}
+//		}
+//
+//	}
 
 	private String[] getComboList(String sql, String columnName, String defaultValue) {
 		Query query = new Query(database);
@@ -405,6 +411,25 @@ public class TableTab extends DatabaseElement {
 
 	public void btnApplyMouseClicked(MouseEvent e) {
 
+		Vector<IndexModel> indices = tableIndexesTab.getDefinitionsForSQL();
+		for (int i = 0; i < indices.size(); i++) {
+			if (isNew) {
+
+			} else {
+				// Proceso de indices
+				String sql = "ALTER TABLE `" + selectedDB + "`.`" + selectedTable + "`\n";
+				sql += "DROP INDEX `" + indices.get(i).originalName + "` ,\n";
+				sql += "ADD " + indices.get(i).getDefinition();
+
+				JOptionPane.showMessageDialog(null, sql);
+//			ALTER TABLE `test`.`ai_test2` 
+//			DROP INDEX `secundaria` ,
+//			ADD INDEX `secundaria` USING BTREE (`f1`, `f3`) KEY_BLOCK_SIZE = 22 COMMENT '\'\'\'comment\'\'\'' VISIBLE;
+
+//			System.out.println(indices.get(i).getDefinition());
+
+			}
+		}
 	}
 
 	public void btnCancelMouseClicked(MouseEvent e) {
@@ -428,6 +453,7 @@ public class TableTab extends DatabaseElement {
 		for (DatabaseElement element : tabList)
 			element.refresh();
 
+		tableIndexesTab.setColumns(tableColumnsTab.definitionColumns);
 		this.revalidate();
 		this.repaint();
 	}

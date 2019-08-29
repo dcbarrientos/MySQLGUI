@@ -75,8 +75,10 @@ public class Query {
 			errorMsg = e.getMessage();
 			errorCode = e.getErrorCode();
 
-			if (Application.DEBUG)
+			if (Application.DEBUG) {
+				System.out.println(sqlTxt);
 				e.printStackTrace();
+			}
 			return false;
 		}
 		return true;
