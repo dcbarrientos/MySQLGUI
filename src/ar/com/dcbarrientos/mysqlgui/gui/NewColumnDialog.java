@@ -68,7 +68,7 @@ public class NewColumnDialog extends JDialog {
 	private ColumnModel columnModel = null;
 	private HashMap<String, String> charsetList;
 //	private boolean isNew;
-	
+
 	private JPanel panel;
 	private JButton btnAccept;
 	private JButton btnCancel;
@@ -97,30 +97,34 @@ public class NewColumnDialog extends JDialog {
 	private ButtonGroup bGGenerated;
 	private JRadioButton rdVirtual;
 	private JRadioButton rdStored;
+	private boolean isNew;
 
-	/**
-	 * @wbp.parser.constructor
-	 */
+	public NewColumnDialog() {
+		this.isNew = true;
+
+		initComponents();
+	}
+
 	public NewColumnDialog(Database database, Ventana ventana) {
 		this.database = database;
 		this.resource = ventana.resource;
-//		isNew = true;
-		
+		this.isNew = true;
+
 		initComponents();
 	}
 
 	public NewColumnDialog(Database database, Ventana ventana, ColumnModel columnModel) {
 		this(database, ventana);
-//		this.isNew = false;
 		this.columnModel = columnModel;
-		
+		this.isNew = false;
+
 		loadColumnData();
 	}
 
 	private void initComponents() {
 		setPreferredSize(new Dimension(470, 375));
 		setTitle(resource.getString("NewColumnDialog.title"));
-		
+
 		panel = new JPanel();
 		panel.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 
@@ -137,31 +141,27 @@ public class NewColumnDialog extends JDialog {
 				btnCancelClicked(e);
 			}
 		});
-		
+
 		GroupLayout groupLayout = new GroupLayout(getContentPane());
-		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+		groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(Alignment.TRAILING,
+				groupLayout.createSequentialGroup().addContainerGap().addGroup(groupLayout
+						.createParallelGroup(Alignment.TRAILING)
 						.addComponent(panel, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 434, Short.MAX_VALUE)
 						.addGroup(groupLayout.createSequentialGroup()
-							.addComponent(btnAccept, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(btnCancel, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)))
-					.addContainerGap())
-		);
-		groupLayout.setVerticalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnCancel)
-						.addComponent(btnAccept))
-					.addContainerGap())
-		);
+								.addComponent(btnAccept, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(ComponentPlacement.RELATED)
+								.addComponent(btnCancel, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)))
+						.addContainerGap()));
+		groupLayout
+				.setVerticalGroup(
+						groupLayout.createParallelGroup(Alignment.LEADING)
+								.addGroup(Alignment.TRAILING,
+										groupLayout.createSequentialGroup().addContainerGap()
+												.addComponent(panel, GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
+												.addPreferredGap(ComponentPlacement.RELATED)
+												.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+														.addComponent(btnCancel).addComponent(btnAccept))
+												.addContainerGap()));
 
 		lblName = new JLabel("Name:");
 
@@ -196,154 +196,124 @@ public class NewColumnDialog extends JDialog {
 		});
 
 		cbCollation = new JComboBox<String>();
-		
+
 		lblDefault = new JLabel("Default:");
-		
+
 		txtDefault = new JTextField();
 		txtDefault.setColumns(10);
-		
+
 		chkNotNull = new JCheckBox("Not null");
 		chkUnique = new JCheckBox("Unique");
 		chkBinary = new JCheckBox("Binary");
 		chkUnsigned = new JCheckBox("Unsigned");
 		chkZerofill = new JCheckBox("Zerofill");
 		chkAutoIncrement = new JCheckBox("Auto increment");
-		
+
 		lblComents = new JLabel("Coments:");
-		
+
 		scrollPane = new JScrollPane();
-		
+
 		chkGenerated = new JCheckBox("Generated");
-		
+
 		chkGenerated.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				rdVirtual.setEnabled(chkGenerated.isSelected());
 				rdStored.setEnabled(chkGenerated.isSelected());
 				chkBinary.setEnabled(!chkGenerated.isSelected());
 				chkNotNull.setEnabled(!chkGenerated.isSelected());
-				if(chkGenerated.isSelected())
+				if (chkGenerated.isSelected())
 					lblDefault.setText("Expression:");
 				else
 					lblDefault.setText("Default:");
 			}
 		});
-		
+
 		rdVirtual = new JRadioButton("Virtual");
 		rdVirtual.setSelected(true);
 		rdVirtual.setEnabled(false);
 		rdStored = new JRadioButton("Stored");
 		rdStored.setSelected(false);
 		rdStored.setEnabled(false);
-		
+
 		bGGenerated = new ButtonGroup();
 		bGGenerated.add(rdStored);
 		bGGenerated.add(rdVirtual);
-		
+
 		GroupLayout gl_panel = new GroupLayout(panel);
-		gl_panel.setHorizontalGroup(
-			gl_panel.createParallelGroup(Alignment.TRAILING)
-				.addGroup(Alignment.LEADING, gl_panel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_panel.createSequentialGroup()
-							.addComponent(chkGenerated)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(rdVirtual)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(rdStored))
-						.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 410, Short.MAX_VALUE)
-						.addGroup(gl_panel.createSequentialGroup()
-							.addComponent(chkNotNull)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(chkUnique)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(chkBinary)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(chkUnsigned)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(chkZerofill)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(chkAutoIncrement))
-						.addGroup(gl_panel.createSequentialGroup()
-							.addComponent(lblName)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE))
-						.addGroup(gl_panel.createSequentialGroup()
-							.addComponent(lblDatatype)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(cbDataType, GroupLayout.PREFERRED_SIZE, 173, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(lblLength)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(txtLength, GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE))
-						.addGroup(gl_panel.createSequentialGroup()
-							.addComponent(lblCharset)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(cbCharset, 0, 152, Short.MAX_VALUE)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(lblCollation)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(cbCollation, GroupLayout.PREFERRED_SIZE, 147, GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_panel.createSequentialGroup()
-							.addComponent(lblDefault)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(txtDefault, GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE))
-						.addComponent(lblComents))
-					.addContainerGap())
-		);
-		gl_panel.setVerticalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblName)
-						.addComponent(txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblDatatype)
-						.addComponent(cbDataType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblLength)
-						.addComponent(txtLength, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblCollation)
+		gl_panel.setHorizontalGroup(gl_panel.createParallelGroup(Alignment.TRAILING).addGroup(Alignment.LEADING,
+				gl_panel.createSequentialGroup().addContainerGap()
+						.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_panel.createSequentialGroup().addComponent(chkGenerated)
+										.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(rdVirtual)
+										.addPreferredGap(ComponentPlacement.RELATED).addComponent(rdStored))
+								.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 410, Short.MAX_VALUE)
+								.addGroup(gl_panel.createSequentialGroup().addComponent(chkNotNull)
+										.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(chkUnique)
+										.addPreferredGap(ComponentPlacement.RELATED).addComponent(chkBinary)
+										.addPreferredGap(ComponentPlacement.RELATED).addComponent(chkUnsigned)
+										.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(chkZerofill)
+										.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(chkAutoIncrement))
+								.addGroup(gl_panel.createSequentialGroup().addComponent(lblName)
+										.addPreferredGap(ComponentPlacement.RELATED)
+										.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE))
+								.addGroup(gl_panel.createSequentialGroup().addComponent(lblDatatype)
+										.addPreferredGap(ComponentPlacement.RELATED)
+										.addComponent(cbDataType, GroupLayout.PREFERRED_SIZE, 173,
+												GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(ComponentPlacement.RELATED).addComponent(lblLength)
+										.addPreferredGap(ComponentPlacement.RELATED)
+										.addComponent(txtLength, GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE))
+								.addGroup(gl_panel.createSequentialGroup().addComponent(lblCharset)
+										.addPreferredGap(ComponentPlacement.UNRELATED)
+										.addComponent(cbCharset, 0, 152, Short.MAX_VALUE)
+										.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(lblCollation)
+										.addPreferredGap(ComponentPlacement.RELATED).addComponent(cbCollation,
+												GroupLayout.PREFERRED_SIZE, 147, GroupLayout.PREFERRED_SIZE))
+								.addGroup(gl_panel.createSequentialGroup().addComponent(lblDefault)
+										.addPreferredGap(ComponentPlacement.UNRELATED)
+										.addComponent(txtDefault, GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE))
+								.addComponent(lblComents))
+						.addContainerGap()));
+		gl_panel.setVerticalGroup(gl_panel.createParallelGroup(Alignment.LEADING).addGroup(gl_panel
+				.createSequentialGroup().addContainerGap()
+				.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE).addComponent(lblName).addComponent(txtName,
+						GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addPreferredGap(ComponentPlacement.RELATED)
+				.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE).addComponent(lblDatatype)
+						.addComponent(cbDataType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblLength).addComponent(txtLength, GroupLayout.PREFERRED_SIZE,
+								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addPreferredGap(ComponentPlacement.RELATED)
+				.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE).addComponent(lblCollation)
 						.addComponent(lblCharset)
-						.addComponent(cbCharset, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(cbCollation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblDefault)
-						.addComponent(txtDefault, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(chkNotNull)
-						.addComponent(chkUnique)
-						.addComponent(chkBinary)
-						.addComponent(chkUnsigned)
-						.addComponent(chkZerofill)
-						.addComponent(chkAutoIncrement))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(chkGenerated)
-						.addComponent(rdVirtual)
-						.addComponent(rdStored))
-					.addGap(3)
-					.addComponent(lblComents)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
-					.addContainerGap())
-		);
-		
+						.addComponent(cbCharset, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.PREFERRED_SIZE)
+						.addComponent(cbCollation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.PREFERRED_SIZE))
+				.addPreferredGap(ComponentPlacement.RELATED)
+				.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE).addComponent(lblDefault).addComponent(
+						txtDefault, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addPreferredGap(ComponentPlacement.UNRELATED)
+				.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE).addComponent(chkNotNull)
+						.addComponent(chkUnique).addComponent(chkBinary).addComponent(chkUnsigned)
+						.addComponent(chkZerofill).addComponent(chkAutoIncrement))
+				.addPreferredGap(ComponentPlacement.RELATED)
+				.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE).addComponent(chkGenerated)
+						.addComponent(rdVirtual).addComponent(rdStored))
+				.addGap(3).addComponent(lblComents).addPreferredGap(ComponentPlacement.RELATED)
+				.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE).addContainerGap()));
+
 		txtComments = new JTextPane();
 		scrollPane.setViewportView(txtComments);
 		panel.setLayout(gl_panel);
 		getContentPane().setLayout(groupLayout);
 		pack();
 		setLocationRelativeTo(null);
-		
+
 		initData();
 	}
-	
+
 	private void cbDataTypeChanged() {
 		Boolean[] attribs = database.mySqlDataType.get(cbDataType.getSelectedItem());
 		txtLength.setEnabled(attribs[database.DATATYPE_LENTH_INDEX]);
@@ -359,18 +329,20 @@ public class NewColumnDialog extends JDialog {
 	private void initData() {
 		Query query = new Query(database);
 		charsetList = new HashMap<String, String>();
-		
+
 		query.executeQuery(Query.SQL_CHARSET_LIST);
 		cbCharset.addItem("");
 		while (query.next()) {
 			charsetList.put(query.getString("Charset"), query.getString("Default collation"));
 			cbCharset.addItem(query.getString("Charset"));
 		}
-		
-		for(String key: database.mySqlDataType.keySet())
+
+		for (String key : database.mySqlDataType.keySet())
 			cbDataType.addItem(key);
-		
-		query.close();		
+
+		query.close();
+		if (!isNew)
+			loadColumnData();
 	}
 
 	private void loadColumnData() {
@@ -394,14 +366,14 @@ public class NewColumnDialog extends JDialog {
 
 	private void updateCollation() {
 		cbCollation.removeAllItems();
-		
+
 		String sql = String.format(Query.SQL_COLLATION_LIST_PARAM, cbCharset.getSelectedItem().toString() + "\\_%");
 		Query query = new Query(database);
 		query.executeQuery(sql);
 		cbCollation.addItem("");
-		while(query.next())
+		while (query.next())
 			cbCollation.addItem(query.getString("COLLATION_NAME"));
-		
+
 		cbCollation.setSelectedItem(charsetList.get(cbCharset.getSelectedItem()));
 		query.close();
 	}
@@ -409,11 +381,12 @@ public class NewColumnDialog extends JDialog {
 	private void btnAcceptClicked(MouseEvent e) {
 		columnModel = new ColumnModel();
 		columnModel.name = txtName.getText();
-		columnModel.dataType = (String)cbDataType.getSelectedItem();
+		columnModel.dataType = (String) cbDataType.getSelectedItem();
 		columnModel.length = txtLength.getText();
 		columnModel.columnDefault = txtDefault.getText();
-		columnModel.charset = (String)cbCharset.getSelectedItem();
-		columnModel.collate = (String)cbCollation.getSelectedItem();
+		columnModel.charset = (String) cbCharset.getSelectedItem();
+		if(cbCollation.getSelectedIndex()>=0)
+			columnModel.collate = (String) cbCollation.getSelectedItem();
 		columnModel.notNull = chkNotNull.isSelected();
 		columnModel.unique = chkUnique.isSelected();
 		columnModel.binary = chkBinary.isSelected();
@@ -424,14 +397,14 @@ public class NewColumnDialog extends JDialog {
 		columnModel.generated = chkGenerated.isSelected();
 		columnModel.virtual = rdVirtual.isSelected();
 		columnModel.stored = rdStored.isSelected();
-		
+
 		dispose();
 	}
-	
+
 	private void btnCancelClicked(MouseEvent e) {
 		dispose();
 	}
-	
+
 	public ColumnModel showDialog() {
 		this.setModal(true);
 		this.setVisible(true);

@@ -59,7 +59,9 @@ public class IndexModel {
 	public String storageType; //
 	public String parser;
 	public String comment; //
-	public boolean visible; // false si hay que borrar este indice
+	public boolean visible; 
+	public boolean isNew;
+	public boolean isDeleted;
 
 	public IndexModel() {
 		fields = new Vector<String[]>();
@@ -71,6 +73,8 @@ public class IndexModel {
 		parser = "";
 		comment = "";
 		visible = true;
+		isNew = false;
+		isDeleted = false;
 	}
 
 	// Order: ASC|DESC
@@ -113,7 +117,7 @@ public class IndexModel {
 		}
 
 		definition += " (";
-		// TODO: lista de campos que forman el indice
+
 		int fc = 0;
 		for (int i = 0; i < fields.size(); i++) {
 			if (fc > 0)

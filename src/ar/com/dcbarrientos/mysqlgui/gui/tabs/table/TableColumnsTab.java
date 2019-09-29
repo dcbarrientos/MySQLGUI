@@ -89,6 +89,7 @@ public class TableColumnsTab extends DatabaseElement {
 	private Vector<Object[]> data;
 	public Vector<ColumnModel> definitionColumns;
 	private HashMap<Integer, String> alterColumns;
+	private Vector<Integer> newColumns;;
 
 	private JScrollPane scroll;
 	private JTable table;
@@ -105,8 +106,12 @@ public class TableColumnsTab extends DatabaseElement {
 	public TableColumnsTab(Ventana ventana, Database database, boolean isNew) {
 		super(ventana, database);
 		this.isNew = isNew;
-//		columnOrder = 1;
 
+		if(isNew) {
+			definitionColumns = new Vector<ColumnModel>();
+			alterColumns = new HashMap<Integer, String>();
+			newColumns = new Vector<Integer>();
+		}
 		initComponents();
 	}
 
@@ -123,6 +128,7 @@ public class TableColumnsTab extends DatabaseElement {
 		tableModel = new TableModel();
 		tableModel.setColumnsClasses(classes);
 		tableModel.setColumnHeaders(columnsName);
+		table.setModel(tableModel);
 
 		scroll = new JScrollPane();
 		scroll.setViewportView(table);
@@ -177,6 +183,7 @@ public class TableColumnsTab extends DatabaseElement {
 	protected void loadData() {
 		definitionColumns = new Vector<ColumnModel>();
 		alterColumns = new HashMap<Integer, String>();
+		newColumns = new Vector<Integer>();
 
 		if (definition != null) {
 
@@ -192,12 +199,9 @@ public class TableColumnsTab extends DatabaseElement {
 				}
 			}
 
-			// Generar loadTableData a partir de aca
-//			tableModel.setData(data);
 			table.setModel(tableModel);
-//			columnOrder = 1;
 		}
-		showDefinition();
+		// showDefinition();
 		loadTableData();
 	}
 
@@ -208,28 +212,38 @@ public class TableColumnsTab extends DatabaseElement {
 
 	public void addRecord(String linea) {
 		String[] datos = linea.split(" ");
-		String dato;
 		ColumnModel columnModel = new ColumnModel();
 
 		int i = 0;
 		// Nombre del campo
 		columnModel.name = datos[i];
-		while(datos[i].charAt(datos[i].length()-1) != '`') {
+		while (datos[i].charAt(datos[i].length() - 1) != '`') {
 			i++;
-			columnModel.name += " " + datos[i]; 
+			columnModel.name += " " + datos[i];
 		}
 		columnModel.name = columnModel.name.substring(1, columnModel.name.length() - 1);
 		i++;
-		
+
 		// Tipo y longitud del dato
-		dato = datos[i].trim();
-		if (dato.indexOf("(") > 0) {
-			columnModel.dataType = dato.substring(0, dato.indexOf("(")).toUpperCase();
-			columnModel.length = dato.substring(dato.indexOf("(") + 1, dato.indexOf(")"));
+		if (datos[i].indexOf("(") > 0) {
+			columnModel.dataType = datos[i].substring(0, datos[i].indexOf("(")).toUpperCase();
+
+			if (datos[i].indexOf(")") >= 0)
+				columnModel.length = datos[i].substring(datos[i].indexOf("(") + 1, datos[i].indexOf(")"));
+			else
+				columnModel.length = datos[i].substring(datos[i].indexOf("(") + 1);
+
+			while (datos[i].indexOf(")") < 0) {
+				i++;
+				if (datos[i].indexOf(")") <= 0)
+					columnModel.length += datos[i];
+				else
+					columnModel.length += datos[i].substring(0, datos[i].indexOf(")"));
+			}
 		} else {
-			columnModel.dataType = dato.toUpperCase();
+			columnModel.dataType = datos[i].toUpperCase();
 		}
-		
+
 		i++;
 		while (i < datos.length) {
 			switch (datos[i].toUpperCase().trim()) {
@@ -275,6 +289,9 @@ public class TableColumnsTab extends DatabaseElement {
 			}
 			i++;
 		}
+		columnModel.isNew = false;
+		columnModel.isDeleted = false;
+
 		definitionColumns.add(columnModel);
 	}
 
@@ -288,14 +305,17 @@ public class TableColumnsTab extends DatabaseElement {
 		if (fila >= 0) {
 			String columnName = (String) table.getValueAt(fila, COLUMN_NAME_INDEX);
 			NewColumnDialog nc = new NewColumnDialog(database, ventana, getColumnModel(columnName));
-			ColumnModel cm = nc.showDialog();
-			if (cm != null) {
-				int in = replaceIndex(definitionColumns, columnName, cm);
-				if (!alterColumns.containsKey(in)) {
-					alterColumns.put(in, columnName);
+			ColumnModel columnModel = nc.showDialog();
+			if (columnModel != null) {
+				columnModel.isNew = false;
+				int in = replaceIndex(definitionColumns, columnName, columnModel);
+
+				if (!newColumns.contains(in)) {
+					if (!alterColumns.containsKey(in)) {
+						alterColumns.put(in, columnName);
+					}
 				}
 
-				// TODO: Lo que falta segun TableIndexesTab
 				loadTableData();
 				tableModel.fireTableDataChanged();
 				mostrarLista(getDefinitionsForSQL());
@@ -305,20 +325,44 @@ public class TableColumnsTab extends DatabaseElement {
 
 	private void mostrarLista(Vector<ColumnModel> definitionsForSQL) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private void addButtonMouseClicked(MouseEvent e) {
-		// TODO: falta implementar.
 		NewColumnDialog nc = new NewColumnDialog(database, ventana);
-		ColumnModel cm = nc.showDialog();
-		if (cm != null) {
-
+		ColumnModel columnModel = nc.showDialog();
+		if (columnModel != null) {
+			columnModel.isNew = true;
+			definitionColumns.add(columnModel);
+			
+			//Estoy agregando una columna en una tabla que ya existe.
+			if(!isNew) 
+				newColumns.add(definitionColumns.indexOf(columnModel));
+			
+			loadTableData();
+			tableModel.fireTableDataChanged();
 		}
 	}
 
 	private void deleteButtonMouseClicked(MouseEvent e) {
 		// TODO: falta implementar.
+		int fila = table.getSelectedRow();
+		if(fila >= 0) {
+			String columnName = (String) table.getValueAt(fila, COLUMN_NAME_INDEX);
+			ColumnModel columnModel = getColumnModel(columnName);
+			columnModel.isDeleted = true;
+			Integer in = definitionColumns.indexOf(columnModel);
+
+			if(newColumns.contains(in)) {
+				newColumns.remove(in);
+				definitionColumns.remove(columnModel);
+			}else if(!alterColumns.containsKey(in))
+				alterColumns.put(in, columnName);
+
+			loadTableData();
+			tableModel.fireTableDataChanged();
+			
+		}
 	}
 
 	private void upButtonMouseClicked(MouseEvent e) {
@@ -353,9 +397,21 @@ public class TableColumnsTab extends DatabaseElement {
 			return definitionColumns;
 		else {
 			definitions = new Vector<ColumnModel>();
-			for (int i : alterColumns.keySet()) {
-				definitionColumns.get(i).originalName = alterColumns.get(i);
-				definitions.add(definitionColumns.get(i));
+			ColumnModel columnModel;
+			
+			//Cargo las columnas modificadas
+			for(int i: alterColumns.keySet()) {
+				columnModel = definitionColumns.get(i);
+				columnModel.originalName = alterColumns.get(i);
+				columnModel.isNew = false;
+				definitions.add(columnModel);
+			}
+			
+			//Cargo las columnas nuevas.
+			for(int i = 0; i < newColumns.size(); i++) {
+				columnModel = definitionColumns.get(newColumns.get(i));
+				columnModel.isNew = true;
+				definitions.add(columnModel);
 			}
 		}
 
@@ -366,45 +422,47 @@ public class TableColumnsTab extends DatabaseElement {
 		data = new Vector<Object[]>();
 
 		for (int i = 0; i < definitionColumns.size(); i++) {
-			Object[] record = new Object[COLUMN_COUNT];
-			ColumnModel column = definitionColumns.get(i);
+			if (!definitionColumns.get(i).isDeleted) {
+				Object[] record = new Object[COLUMN_COUNT];
+				ColumnModel column = definitionColumns.get(i);
 
-			// Indice de la columna
-			JLabel campo = new JLabel(String.valueOf(i + 1));
-			if (i == 0)
-				campo.setIcon(new ImageIcon(getClass().getResource(primaryKeyIcon)));
-			else
-				campo.setIcon(new ImageIcon(getClass().getResource(columnIcon)));
+				// Indice de la columna
+				JLabel campo = new JLabel(String.valueOf(i + 1));
+				if (i == 0)
+					campo.setIcon(new ImageIcon(getClass().getResource(primaryKeyIcon)));
+				else
+					campo.setIcon(new ImageIcon(getClass().getResource(columnIcon)));
 
-			record[COLUMN_ORDER_INDEX] = campo;
+				record[COLUMN_ORDER_INDEX] = campo;
 
-			// Nombre del campo
-			record[COLUMN_NAME_INDEX] = column.name;
+				// Nombre del campo
+				record[COLUMN_NAME_INDEX] = column.name;
 
-			// Tipo y longitud del dato
-			record[COLUMN_DATA_TYPE_INDEX] = column.dataType;
-			record[COLUMN_DATA_LENGTH_INDEX] = column.length;
+				// Tipo y longitud del dato
+				record[COLUMN_DATA_TYPE_INDEX] = column.dataType;
+				record[COLUMN_DATA_LENGTH_INDEX] = column.length;
 
-			record[COLUMN_NOT_NULL_INDEX] = column.notNull;
-			record[COLUMN_DEFAULT_INDEX] = column.columnDefault;
-			record[COLUMN_AUTO_INCREMENT_INDEX] = column.autoincrement;
-			record[COLUMN_UNSIGNED_INDEX] = column.unsigned;
-			record[COLUMN_ZEROFILL_INDEX] = column.zerofill;
-			record[COLUMN_COMMENT_INDEX] = column.comment;
-			record[COLUMN_COLLATION_INDEX] = column.collate;
+				record[COLUMN_NOT_NULL_INDEX] = column.notNull;
+				record[COLUMN_DEFAULT_INDEX] = column.columnDefault;
+				record[COLUMN_AUTO_INCREMENT_INDEX] = column.autoincrement;
+				record[COLUMN_UNSIGNED_INDEX] = column.unsigned;
+				record[COLUMN_ZEROFILL_INDEX] = column.zerofill;
+				record[COLUMN_COMMENT_INDEX] = column.comment;
+				record[COLUMN_COLLATION_INDEX] = column.collate;
 
-			data.add(record);
+				data.add(record);
+			}
 		}
 		tableModel.setData(data);
 	}
-	
+
 	private ColumnModel getColumnModel(String columnName) {
-		for(int i = 0; i < definitionColumns.size(); i++) {
-			if(definitionColumns.get(i).name.equals(columnName)) {
+		for (int i = 0; i < definitionColumns.size(); i++) {
+			if (definitionColumns.get(i).name.equals(columnName)) {
 				return definitionColumns.get(i);
 			}
 		}
-		
+
 		return null;
 	}
 }

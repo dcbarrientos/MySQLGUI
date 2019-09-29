@@ -48,6 +48,19 @@ public class ColumnModel {
 	public boolean virtual;
 	public boolean stored;
 	public String comment;
+	public boolean isNew;
+	public boolean isDeleted;
+	
+	public ColumnModel() {
+		name = "";
+		dataType = "";
+		length = "";
+		collate = "";
+		charset = "";
+		comment = "";
+		isNew = true;
+		isDeleted = false;
+	}
 	
 	public String getDefinition() {
 		String definition = "";
@@ -75,7 +88,7 @@ public class ColumnModel {
 		
 		if(!generated) {
 			if(autoincrement)
-				definition += "AUTOINCREMENT ";
+				definition += "AUTO_INCREMENT ";
 			if(binary)
 				definition += "BINARY ";
 			if(unsigned)
@@ -84,13 +97,13 @@ public class ColumnModel {
 				definition += "ZEROFILL ";
 			if(columnDefault != null && columnDefault.length() > 0 && !generated)
 				definition += "DEFAULT '" + columnDefault + "' ";
-			if(collate != null)
+			if(collate.length() >0)
 				definition += "COLLATE " + collate + " ";
-			if(charset != null)
+			if(charset.length() > 0)
 				definition += "CHARTSET " + charset + " ";
 		}
 		
-		if(comment != null)
+		if(comment.length() > 0)
 			definition += "COMMENT '" + comment + "' ";
 		
 		return definition;

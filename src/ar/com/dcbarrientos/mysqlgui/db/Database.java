@@ -134,6 +134,7 @@ public class Database {
 		mySqlDataType.put("BIT", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
 		mySqlDataType.put("BOOLEAN", 			new Boolean[]{false, true, true, true, false, true, true, true, true});
 		mySqlDataType.put("ENUM", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("SET", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
 
 		//mySqlDataType.put("INTEGER", 			new Boolean[]{true});
 		//mySqlDataType.put("DEC", 				new Boolean[]{true});
@@ -222,6 +223,7 @@ public class Database {
 		return defaultCharset;
 	}
 	
+	//Nadie la usa
 	public String getDefaultCharset(String charset) {
 		Query query = new Query(this);
 		String defaultCollation = "";
@@ -323,6 +325,19 @@ public class Database {
 		}
 
 		return value;
+	}
+	
+	public String getDefaultEngine() {
+		String engine = "";
+		Query query = new Query(this);
+		query.executeQuery(Query.SQL_ENGINE_LIST);
+		while(query.next() && engine.length() == 0) {
+			if(query.getString("Support").equals("DEFAULT")) {
+				engine = query.getString("Engine");
+			}
+		}
+		
+		return engine;
 	}
 
 }

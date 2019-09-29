@@ -234,7 +234,7 @@ public class TablesPanel extends DatabaseElement {
 	protected void jbInsertRecordMouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
 		ventana.addMessage("Falta hacer");
-		CreateTableDialog ctd = new CreateTableDialog(ventana, database);
+		CreateTableDialog ctd = new CreateTableDialog(ventana, database, selectedDB);
 		ctd.showDialog();
 
 	}

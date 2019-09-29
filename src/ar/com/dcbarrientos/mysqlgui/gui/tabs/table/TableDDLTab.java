@@ -27,14 +27,19 @@
 package ar.com.dcbarrientos.mysqlgui.gui.tabs.table;
 
 import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JToolBar;
 
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.TableTab;
 import ar.com.dcbarrientos.mysqlgui.tools.SQLTextArea;
 
 /**
@@ -48,17 +53,33 @@ public class TableDDLTab extends DatabaseElement {
 	private String sql;
 	
 	private JLabel ddlDescription;
+	private JToolBar toolBar;
+	private JButton refreshSql;
 	private RTextScrollPane scrollPane;
 	private SQLTextArea textArea;
+	private TableTab tableTab;
 
-	public TableDDLTab(Ventana ventana, Database database) {
+	public TableDDLTab(Ventana ventana, Database database, TableTab tableTab) {
 		super(ventana, database);
-
+		this.tableTab = tableTab;
+		
 		initComponents();
 	}
 
 	private void initComponents() {
 		setLayout(new BorderLayout());
+		
+		toolBar = new JToolBar();
+		toolBar.setOrientation(JToolBar.VERTICAL);
+		add(toolBar, BorderLayout.WEST);
+		
+		refreshSql = new JButton("Re");
+		refreshSql.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				setSQL(tableTab.getDefinition());
+			}
+		});
+		toolBar.add(refreshSql);
 
 		ddlDescription = new JLabel();
 		add(ddlDescription, BorderLayout.NORTH);
@@ -74,6 +95,7 @@ public class TableDDLTab extends DatabaseElement {
 
 	public void setSQL(String sql) {
 		this.sql = sql;
+		loadData();
 	}
 	
 	protected void loadData() {

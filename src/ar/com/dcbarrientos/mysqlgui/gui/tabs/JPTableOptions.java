@@ -24,10 +24,10 @@ public class JPTableOptions extends JPanel{
 	private JLabel lblCollation;
 	private JLabel lblDescription;
 	private JTextField txtAutoIncrement;
-	private JComboBox cbEngine;
+	private JComboBox<String> cbEngine;
 	private JTextField txtTableName;
-	private JComboBox cbCharset;
-	private JComboBox cbCollation;
+	private JComboBox<String> cbCharset;
+	private JComboBox<String> cbCollation;
 	private JTextArea txtDescription;
 	
 	
@@ -58,14 +58,14 @@ public class JPTableOptions extends JPanel{
 		txtAutoIncrement = new JTextField();
 		txtAutoIncrement.setColumns(10);
 		
-		cbEngine = new JComboBox();
+		cbEngine = new JComboBox<String>();
 		
 		txtTableName = new JTextField();
 		txtTableName.setColumns(10);
 		
-		cbCharset = new JComboBox();
+		cbCharset = new JComboBox<String>();
 		
-		cbCollation = new JComboBox();
+		cbCollation = new JComboBox<String>();
 		
 		txtDescription = new JTextArea();
 		GroupLayout gl_borderTableOptions = new GroupLayout(borderTableOptions);

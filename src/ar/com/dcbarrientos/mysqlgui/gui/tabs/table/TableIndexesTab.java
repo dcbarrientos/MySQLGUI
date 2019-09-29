@@ -79,13 +79,23 @@ public class TableIndexesTab extends DatabaseElement {
 	private Vector<ColumnModel> columns;
 
 	private Vector<IndexModel> definitionIndexes;
-	private HashMap<Integer, String> alterIndexes;
+	private HashMap<Integer, String> alterIndexes; // Lista de indices de los Indices a modificar con sus nombres
+													// originales, en caso que este haya sido modificado.
+	private Vector<Integer> newIndexes; // Lista de indices nuevos, estos son utilizados cuando edito una tabla y agrego
+										// un campo.
+
 	private boolean isNew;
 
 	public TableIndexesTab(Ventana ventana, Database database, boolean isNew) {
 		super(ventana, database);
 
 		this.isNew = isNew;
+
+		if (isNew) {
+			definitionIndexes = new Vector<IndexModel>();
+			alterIndexes = new HashMap<Integer, String>();
+			newIndexes = new Vector<Integer>();
+		}
 
 		initComponents();
 	}
@@ -142,8 +152,11 @@ public class TableIndexesTab extends DatabaseElement {
 
 	public void loadData() {
 		definitionIndexes = new Vector<IndexModel>();
-		//alterIndexes = new Vector<Integer>();
-		alterIndexes = new HashMap<Integer, String>();
+
+		if (!isNew) {
+			alterIndexes = new HashMap<Integer, String>();
+			newIndexes = new Vector<Integer>();
+		}
 
 		if (definition != null) {
 			String[] lineas = definition.split("\n");
@@ -160,34 +173,32 @@ public class TableIndexesTab extends DatabaseElement {
 
 	private void loadTableData() {
 		data = new Vector<Object[]>();
-		Vector<IndexModel> list;
-		
-		//TODO: Eliminar list y trabajar con definitionIndexes
-		list = definitionIndexes;
 
-		for (int i = 0; i < list.size(); i++) {
-			Object[] rec = new Object[COLUMN_COUNT];
-			JLabel label = new JLabel(Integer.toString(i + 1));
-			if (list.get(i).indexType.equals(IndexModel.INDEXTYPELIST[IndexModel.INDEX_PRIMARY]))
-				label.setIcon(new ImageIcon(getClass().getResource(primaryKeyIcon)));
-			else
-				label.setIcon(new ImageIcon(getClass().getResource(secondaryKeyIcon)));
+		for (int i = 0; i < definitionIndexes.size(); i++) {
+			if (!definitionIndexes.get(i).isDeleted) {
+				Object[] rec = new Object[COLUMN_COUNT];
+				JLabel label = new JLabel(Integer.toString(i + 1));
+				if (definitionIndexes.get(i).indexType.equals(IndexModel.INDEXTYPELIST[IndexModel.INDEX_PRIMARY]))
+					label.setIcon(new ImageIcon(getClass().getResource(primaryKeyIcon)));
+				else
+					label.setIcon(new ImageIcon(getClass().getResource(secondaryKeyIcon)));
 
-			rec[0] = label;
-			rec[1] = list.get(i).name;
-			rec[2] = list.get(i).indexType;
-			rec[3] = list.get(i).getFieldList();
+				rec[0] = label;
+				rec[1] = definitionIndexes.get(i).name;
+				rec[2] = definitionIndexes.get(i).indexType;
+				rec[3] = definitionIndexes.get(i).getFieldList();
 
-			data.add(rec);
+				data.add(rec);
+			}
 		}
 
 		tableModel.setData(data);
 	}
 
 	private void addRecord(String linea) {
-		String[] datos = linea.split(" ");
-		IndexModel indexModel = new IndexModel();
-//		Object[] records = new Object[COLUMN_COUNT];
+		if (isIndex(linea)) {
+			String[] datos = linea.split(" ");
+			IndexModel indexModel = new IndexModel();
 
 //		  PRIMARY KEY (`id`),
 //		  UNIQUE KEY `index4` (`f1`),
@@ -195,79 +206,79 @@ public class TableIndexesTab extends DatabaseElement {
 //		  KEY `secundaria` (`f1`) USING BTREE KEY_BLOCK_SIZE=22 COMMENT ''''''comment'''''',
 //		  FULLTEXT KEY `sdfasdf` (`f1`) COMMENT ''comentarios''
 
-//			JLabel icon = new JLabel();
-//			icon.setIcon(new ImageIcon(getClass().getResource(primaryKeyIcon)));
-//			Object[] dato = {icon, "nombre_del_indice_opcional", "FULLTEXT KEY", "title,body"};
-//			data.add(dato);
+			int i = 0;
 
-		int i = 0;
-
-		// Tipo de indice
-		if (datos[i].equals("KEY")) {
-			indexModel.indexType = "INDEX";
-		} else {
-			indexModel.indexType = datos[i];
-			i++;
-		}
-		i++;
-
-		// Nombre si lo tiene
-		if (!indexModel.indexType.equals("PRIMARY")) {
-			indexModel.name = Database.trimCuote(datos[i]);
-			i++;
-		} else
-			indexModel.name = "PRIMARY";
-
-		String tmp = linea.substring(linea.indexOf('(') + 1, linea.lastIndexOf(')'));
-		String[] indexColumns = tmp.split(",");
-
-		for (int in = 0; in < indexColumns.length; in++) {
-			String f = indexColumns[in];
-
-			String name = f.substring(1, f.lastIndexOf('`'));
-
-			String length = "";
-			if (f.indexOf('(') > 0)
-				length = f.substring(f.indexOf('(') + 1, f.indexOf(')'));
-
-			String order = "";
-			if (f.contains(IndexModel.COMBO_DESC))
-				order = IndexModel.COMBO_DESC;
-
-			indexModel.addField(name, length, order);
-		}
-
-		i++;
-		while (i < datos.length) {
-			switch (datos[i]) {
-			case "USING":
+			// Tipo de indice
+			if (datos[i].equals("KEY")) {
+				indexModel.indexType = "INDEX";
+			} else {
+				indexModel.indexType = datos[i];
 				i++;
-				indexModel.storageType = datos[i];
-				break;
-			case "COMMENT":
+			}
+			i++;
+
+			// Nombre si lo tiene
+			if (!indexModel.indexType.equals("PRIMARY")) {
+				indexModel.name = Database.trimCuote(datos[i]);
 				i++;
-				indexModel.comment = Database.trimCuote(datos[i].substring(1, datos[i].length() - 1));
-				break;
-			case "VISIBLE":
-				indexModel.visible = true;
-				break;
-			case "INVISIBLE":
-				indexModel.visible = false;
-				break;
-			case "WITH":
-				i += 2;
-				indexModel.parser = Database.trimCuote(datos[i]);
-			default:
-				if (datos[i].startsWith("KEY_BLOCK_SIZE")) {
-					indexModel.blockSize = datos[i].substring(datos[i].indexOf("=") + 1);
-				}
-				break;
+			} else
+				indexModel.name = "PRIMARY";
+
+			String tmp = linea.substring(linea.indexOf('(') + 1, linea.lastIndexOf(')'));
+			String[] indexColumns = tmp.split(",");
+
+			for (int in = 0; in < indexColumns.length; in++) {
+				String f = indexColumns[in];
+
+				String name = f.substring(1, f.lastIndexOf('`'));
+
+				String length = "";
+				if (f.indexOf('(') > 0)
+					length = f.substring(f.indexOf('(') + 1, f.indexOf(')'));
+
+				String order = "";
+				if (f.contains(IndexModel.COMBO_DESC))
+					order = IndexModel.COMBO_DESC;
+
+				indexModel.addField(name, length, order);
 			}
 
 			i++;
+			while (i < datos.length) {
+				switch (datos[i]) {
+				case "USING":
+					i++;
+					indexModel.storageType = datos[i];
+					break;
+				case "COMMENT":
+					i++;
+					indexModel.comment = Database.trimCuote(datos[i].substring(0, datos[i].length() - 1));
+					break;
+				case "VISIBLE":
+					indexModel.visible = true;
+					break;
+				case "INVISIBLE":
+					indexModel.visible = false;
+					break;
+				case "WITH":
+					i += 2;
+					indexModel.parser = Database.trimCuote(datos[i]);
+				default:
+					if (datos[i].startsWith("KEY_BLOCK_SIZE")) {
+						indexModel.blockSize = datos[i].substring(datos[i].indexOf("=") + 1);
+					}
+					break;
+				}
+
+				i++;
+			}
+			definitionIndexes.add(indexModel);
+			// alterIndexes.add(indexModel);
 		}
-		definitionIndexes.add(indexModel);
-		// alterIndexes.add(indexModel);
+	}
+	
+	private boolean isIndex(String linea) {
+		//linea.startsWith("PRIMARY") || linea.startsWith("KEY") || linea.startsWith("INDEX"
 	}
 
 	public void setColumns(Vector<ColumnModel> columns) {
@@ -279,7 +290,24 @@ public class TableIndexesTab extends DatabaseElement {
 	}
 
 	public void btnDeleteMouseClicked(MouseEvent e) {
+		int fila = table.getSelectedRow();
+		if (fila >= 0) {
+			String indexName = (String) table.getValueAt(fila, 1);
+			IndexModel indexModel = getIndex(definitionIndexes, indexName);
+			indexModel.isDeleted = true;
+			// TODO: Cambiar getIndexIndex por definitionIndexes.indexOf(indexModel);
+			Integer in = getIndexIndex(definitionIndexes, indexModel.name);
 
+			if (newIndexes.contains(in)) {
+				newIndexes.remove(in);
+				definitionIndexes.remove(indexModel);
+			} else if (!alterIndexes.containsKey(in)) {
+				alterIndexes.put(in, indexName);
+			}
+
+			loadTableData();
+			tableModel.fireTableDataChanged();
+		}
 	}
 
 	public void btnEditMouseClicked(MouseEvent e) {
@@ -289,27 +317,36 @@ public class TableIndexesTab extends DatabaseElement {
 
 			NewIndexDialog nid = new NewIndexDialog(ventana, columns, getIndex(definitionIndexes, indexName),
 					selectedTable);
-			IndexModel im = nid.showDialog();
-			if (im != null) {
-				int in = replaceIndex(definitionIndexes, indexName, im);
-				//boolean isModified = false;
-				//TODO: Ver si esto funciona
-//				for (int i = 0; i < alterIndexes.size(); i++) {
-//					if(alterIndexes.containsKey(in)) {
-//						isModified = true;
-//					}
-//				}
-//				if (!isModified) {
-//					alterIndexes.put(in, indexName);
-//				}
-				if(!alterIndexes.containsKey(in)) {
-					alterIndexes.put(in,  indexName);
+			IndexModel indexModel = nid.showDialog();
+			if (indexModel != null) {
+				int in = replaceIndex(definitionIndexes, indexName, indexModel);
+
+				if (!newIndexes.contains(in)) {
+					if (!alterIndexes.containsKey(in)) {
+						alterIndexes.put(in, indexName);
+					}
 				}
-				
 				loadTableData();
 				tableModel.fireTableDataChanged();
 				mostrarLista(getDefinitionsForSQL());
 			}
+		}
+	}
+
+	public void btnAddMouseClicked(MouseEvent e) {
+		NewIndexDialog nid = new NewIndexDialog(ventana, columns, selectedTable);
+		IndexModel indexModel = nid.showDialog();
+
+		if (indexModel != null) {
+			indexModel.isNew = true;
+			definitionIndexes.add(indexModel);
+
+			// Solo uso newIndexes cuando estoy editando una tabla y agrego un indice.
+			if (!isNew)
+				newIndexes.add(definitionIndexes.indexOf(indexModel));
+
+			loadTableData();
+			tableModel.fireTableDataChanged();
 		}
 	}
 
@@ -331,16 +368,14 @@ public class TableIndexesTab extends DatabaseElement {
 		return index;
 	}
 
-	public void btnAddMouseClicked(MouseEvent e) {
-		NewIndexDialog nid = new NewIndexDialog(ventana, columns, selectedTable);
-		IndexModel indexModel = nid.showDialog();
-
-		if (indexModel != null) {
-			definitionIndexes.add(indexModel);
-
-			loadTableData();
-			tableModel.fireTableDataChanged();
+	private int getIndexIndex(Vector<IndexModel> list, String indexName) {
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).name.equals(indexName)) {
+				return i;
+			}
 		}
+
+		return -1;
 	}
 
 	/**
@@ -365,7 +400,7 @@ public class TableIndexesTab extends DatabaseElement {
 
 	/**
 	 * Genera una lista de definiciones a partir de la que contiene los originales
-	 * con los modificados para mostrar en la tabla.
+	 * con los indices modificados y nuevos para mostrar en la tabla.
 	 * 
 	 * @return Devuelve una lista de indices para mostrar en la tabla.
 	 */
@@ -375,13 +410,29 @@ public class TableIndexesTab extends DatabaseElement {
 			return definitionIndexes;
 		else {
 			definitions = new Vector<IndexModel>();
-			for(int i: alterIndexes.keySet()) {
-				definitionIndexes.get(i).originalName = alterIndexes.get(i);
-				definitions.add(definitionIndexes.get(i));
+			IndexModel indexModel;
+
+			// Cargo los indices modificados.
+			for (int i : alterIndexes.keySet()) {
+				indexModel = definitionIndexes.get(i);
+				indexModel.originalName = alterIndexes.get(i);
+				indexModel.isNew = false;
+				definitions.add(indexModel);
+			}
+
+			// Cargo los nuevos indices.
+			for (int i = 0; i < newIndexes.size(); i++) {
+				indexModel = definitionIndexes.get(newIndexes.get(i));
+				indexModel.isNew = true;
+				definitions.add(indexModel);
 			}
 		}
 
 		return definitions;
+	}
+
+	public void setTableName(String tableName) {
+		selectedTable = tableName;
 	}
 
 	private void mostrarLista(Vector<IndexModel> lista) {

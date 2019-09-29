@@ -58,6 +58,8 @@ public class Query {
 	public static final String SQL_CHARSET_LIST = "SHOW CHARACTER SET;";
 	public static final String SQL_SHOW_CREATE_TABLE = "SHOW CREATE TABLE %s.%s;";
 	
+	public static int ERROR = -1;
+	
 	public Query(Database database) {
 		this.database = database;
 	}
@@ -93,7 +95,7 @@ public class Query {
 	 *         error, su description en errorMsg y errorCode
 	 */
 	public int executeUpdate(String sql) {
-		int res = -1;
+		int res = ERROR;
 
 		try {
 			st = database.getConnection().createStatement();

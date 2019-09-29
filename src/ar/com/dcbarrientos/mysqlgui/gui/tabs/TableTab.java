@@ -29,26 +29,33 @@ package ar.com.dcbarrientos.mysqlgui.gui.tabs;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Vector;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.db.Query;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
+import ar.com.dcbarrientos.mysqlgui.gui.ScriptToDatabaseDialog;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableColumnsTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableDDLTab;
@@ -60,6 +67,7 @@ import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableInfoTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableOptionsTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TablePartitionsTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableTriggersTab;
+import ar.com.dcbarrientos.mysqlgui.model.ColumnModel;
 import ar.com.dcbarrientos.mysqlgui.model.IndexModel;
 
 /**
@@ -84,6 +92,8 @@ public class TableTab extends DatabaseElement {
 	public static final int DDL_INDEX = 8;
 	public static final int DATA_INDEX = 9;
 
+	private final int DEFAULT = 0;
+
 	private JPanel jpTableOptions;
 	private JPanel borderTableOptions;
 	private JLabel lblTableName;
@@ -98,6 +108,20 @@ public class TableTab extends DatabaseElement {
 	private JComboBox<String> cbCharset;
 	private JComboBox<String> cbCollation;
 	private JTextArea txtComment;
+
+	private String txtAutoIncrementOriginal;
+	private String cbEngineOriginal;
+	private String txtTableNameOriginal;
+	private String cbCharsetOriginal;
+	private String cbCollationOriginal;
+	private String txtCommentOriginal;
+
+	private boolean istxtAutoIncrementChanged;
+	private boolean iscbEngineChanged;
+	private boolean istxtTableNameChanged;
+	private boolean iscbCharsetChanged;
+	private boolean iscbCollationChanged;
+	private boolean istxtCommentChanged;
 
 	private JTabbedPane tabPane;
 	private TableInfoTab tableInfoTab;
@@ -121,6 +145,7 @@ public class TableTab extends DatabaseElement {
 		this.isNew = isNew;
 
 		initComponents();
+		clean();
 	}
 
 	private void initComponents() {
@@ -150,18 +175,101 @@ public class TableTab extends DatabaseElement {
 
 		txtAutoIncrement = new JTextField();
 		txtAutoIncrement.setColumns(10);
+		txtAutoIncrement.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (txtAutoIncrement.getText().equals(txtAutoIncrementOriginal))
+					istxtAutoIncrementChanged = false;
+				else
+					istxtAutoIncrementChanged = true;
+			}
+		});
 
 		cbEngine = new JComboBox<String>(getComboList(Query.SQL_ENGINE_LIST, "Engine", ""));
+		cbEngine.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (((String) cbEngine.getSelectedItem()).equals(cbEngineOriginal))
+					iscbEngineChanged = true;
+				else
+					iscbEngineChanged = false;
+			}
+		});
 
 		txtTableName = new JTextField();
+		txtTableName.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			public void keyReleased(KeyEvent e) {
+				if (txtTableName.getText().equals(txtTableNameOriginal))
+					istxtTableNameChanged = false;
+				else
+					istxtTableNameChanged = true;
+			}
+
+			public void keyPressed(KeyEvent e) {
+			}
+		});
 		txtTableName.setColumns(10);
 
 		cbCharset = new JComboBox<String>(getComboList(Query.SQL_CHARSET_LIST, "Charset", "Default Charset"));
+		cbCharset.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					if (!((String) e.getItem()).equals("Default Charset")) {
+						String sql = String.format(Query.SQL_COLLATION_LIST_PARAM, ((String) e.getItem()) + "%");
+						DefaultComboBoxModel<String> cbm = new DefaultComboBoxModel<String>(
+								getComboList(sql, "COLLATION_NAME", "Default Collation"));
+						cbCollation.setModel(cbm);
+					}
+				}
+				if (((String) cbCharset.getSelectedItem()).equals(cbCharsetOriginal))
+					iscbCharsetChanged = false;
+				else
+					iscbCharsetChanged = true;
+			}
+		});
 
-		cbCollation = new JComboBox<String>(
-				getComboList(Query.SQL_COLLATION_LIST, "COLLATION_NAME", "Default Collation"));
+		cbCollation = new JComboBox<String>();
+		cbCollation.addItem("Default Collation");
+		cbCollation.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (((String) cbCollation.getSelectedItem()).equals(cbCollationOriginal))
+					iscbCollationChanged = false;
+				else
+					iscbCollationChanged = true;
+			}
+		});
 
 		txtComment = new JTextArea();
+		txtComment.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (txtComment.getText().equals(txtCommentOriginal))
+					istxtCommentChanged = false;
+				else
+					istxtCommentChanged = true;
+			}
+		});
 		GroupLayout gl_borderTableOptions = new GroupLayout(borderTableOptions);
 		gl_borderTableOptions.setHorizontalGroup(gl_borderTableOptions.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_borderTableOptions.createSequentialGroup().addContainerGap()
@@ -265,18 +373,36 @@ public class TableTab extends DatabaseElement {
 		tabList.add(tableOptionsTab);
 		tabPane.insertTab(tableOptionsTab.title, null, tableOptionsTab, null, OPTIONS_INDEX);
 
-		tableDDLTab = new TableDDLTab(ventana, database);
+		tableDDLTab = new TableDDLTab(ventana, database, this);
 		tabList.add(tableDDLTab);
 		tabPane.insertTab(tableDDLTab.title, null, tableDDLTab, null, DDL_INDEX);
+		tabPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				JTabbedPane tp = (JTabbedPane) e.getSource();
+				if (tp.getSelectedIndex() == DDL_INDEX) {
+					tableDDLTab.setSQL(getDefinition());
+				}
+			}
+
+		});
 
 		tableDataTab = new TableDataTab(ventana, database);
 		tabList.add(tableDataTab);
 		tabPane.insertTab(tableDataTab.title, null, tableDataTab, null, DATA_INDEX);
+
 	}
 
 	protected void loadData() {
+		istxtAutoIncrementChanged = false;
+		iscbEngineChanged = false;
+		istxtTableNameChanged = false;
+		iscbCharsetChanged = false;
+		iscbCollationChanged = false;
+		istxtCommentChanged = false;
+
 		if (!isNew) {
 			txtTableName.setText(selectedTable);
+			txtTableNameOriginal = selectedTable;
 
 			String sql = String.format(Query.SQL_SHOW_CREATE_TABLE, selectedDB, selectedTable);
 			// String txtCreate = "";
@@ -289,7 +415,9 @@ public class TableTab extends DatabaseElement {
 
 			if (sqlCreateTable.length() > 0)
 				processCreateTable();
-
+		} else {
+			txtTableName.setText(resource.getString("TableTab.tableName"));
+			tableIndexesTab.setTableName(txtTableName.getText());
 		}
 	}
 
@@ -310,7 +438,7 @@ public class TableTab extends DatabaseElement {
 	}
 
 	private void loadTableDefinition(String tableAttribs) {
-		clean();
+		// clean();
 		String[] attribs = tableAttribs.split(" ");
 		String attrib;
 		String value;
@@ -321,7 +449,6 @@ public class TableTab extends DatabaseElement {
 			if (tokens.length > 1)
 				value = tokens[1];
 			else {
-				System.out.println(tokens);
 				i++;
 				tokens = attribs[i].split("=");
 				attrib += " " + tokens[0];
@@ -331,15 +458,19 @@ public class TableTab extends DatabaseElement {
 			switch (attrib) {
 			case "ENGINE":
 				cbEngine.setSelectedItem(value);
+				cbEngineOriginal = value;
 				break;
 			case "AUTO_INCREMENT":
 				txtAutoIncrement.setText(value);
+				txtAutoIncrementOriginal = value;
 				break;
 			case "DEFAULT CHARSET":
 				cbCharset.getModel().setSelectedItem(value);
+				cbCharsetOriginal = value;
 				break;
 			case "COLLATE":
 				cbCollation.setSelectedItem(value);
+				cbCollationOriginal = value;
 				break;
 			case "COMMENT":
 				String comment = value.substring(1, value.length());
@@ -348,6 +479,7 @@ public class TableTab extends DatabaseElement {
 					comment += " " + attribs[i];
 				}
 				txtComment.setText(comment.substring(0, comment.length() - 1));
+				txtCommentOriginal = txtComment.getText();
 				break;
 			default:
 				break;
@@ -356,20 +488,6 @@ public class TableTab extends DatabaseElement {
 			i++;
 		}
 	}
-
-//	private void loadColumnsDefinition(String definition) {
-//		String[] lineas = definition.split("\n");
-//
-//		for (int i = 0; i < lineas.length; i++) {
-//			if (lineas[i].trim().startsWith("`")) {
-//				String linea = lineas[i].trim();
-//				if (linea.endsWith(",") || linea.endsWith(";"))
-//					linea = linea.substring(0, linea.length() - 1);
-//				tableColumnsTab.addRecord(linea);
-//			}
-//		}
-//
-//	}
 
 	private String[] getComboList(String sql, String columnName, String defaultValue) {
 		Query query = new Query(database);
@@ -410,26 +528,108 @@ public class TableTab extends DatabaseElement {
 	}
 
 	public void btnApplyMouseClicked(MouseEvent e) {
+		String sql = getDefinition();
 
+		// TODO: Codigo para ejecutar sql.
+		// TODO: Tomar en cuenta el cambio de nombre cuando hago refresh.
+
+		ScriptToDatabaseDialog sdb = new ScriptToDatabaseDialog(ventana, database);
+		sdb.setSQLSript(sql);
+		if (sdb.showDialog()) {
+			if (isNew) {
+				ventana.refresh();
+				ventana.setSelectedTable(selectedDB, selectedTable);
+			} else
+				refresh();
+		}
+		System.out.println(sql);
+	}
+
+	public String getDefinition() {
+		selectedTable = txtTableName.getText();
+		txtTableNameOriginal = selectedTable;
+
+		String sql = "";
+		if (isNew)
+			sql = "CREATE TABLE `" + selectedDB + "`.`" + selectedTable + "`(\n";
+		else
+			sql = "ALTER TABLE `" + selectedDB + "`.`" + selectedTable + "`\n";
+
+		if (istxtTableNameChanged) {
+			sql += "\nRENAME TO `" + selectedDB + "`.`" + txtTableName.getText() + "`";
+		}
+
+		// Proceso columnas
+		Vector<ColumnModel> columns = tableColumnsTab.getDefinitionsForSQL();
+		for (int i = 0; i < columns.size(); i++) {
+			if (isNew) {
+				sql += "\t" + columns.get(i).getDefinition();
+			} else {
+				if (columns.get(i).isNew) {
+					// Es una columna nueva
+					sql += "ADD COLUMN " + columns.get(i).getDefinition();
+				} else if (columns.get(i).isDeleted) {
+					// Es una columna que hay que borrar
+					sql += "DROP COLUMN " + columns.get(i).name;
+				} else {
+					// Es una columna modificada.
+					sql += "CHANGE `" + columns.get(i).originalName + "` " + columns.get(i).getDefinition();
+				}
+			}
+
+			if (i < columns.size() - 1)
+				sql += ", \n";
+		}
+
+		// Proceso indices
 		Vector<IndexModel> indices = tableIndexesTab.getDefinitionsForSQL();
+		if (indices.size() > 0 && columns.size() > 0)
+			sql += ", \n";
+
 		for (int i = 0; i < indices.size(); i++) {
 			if (isNew) {
-
+				sql += "\t" + indices.get(i).getDefinition();
 			} else {
-				// Proceso de indices
-				String sql = "ALTER TABLE `" + selectedDB + "`.`" + selectedTable + "`\n";
-				sql += "DROP INDEX `" + indices.get(i).originalName + "` ,\n";
-				sql += "ADD " + indices.get(i).getDefinition();
-
-				JOptionPane.showMessageDialog(null, sql);
-//			ALTER TABLE `test`.`ai_test2` 
-//			DROP INDEX `secundaria` ,
-//			ADD INDEX `secundaria` USING BTREE (`f1`, `f3`) KEY_BLOCK_SIZE = 22 COMMENT '\'\'\'comment\'\'\'' VISIBLE;
-
-//			System.out.println(indices.get(i).getDefinition());
-
+				if (indices.get(i).isNew) {
+					sql += "ADD INDEX " + indices.get(i).getDefinition();
+				} else if (indices.get(i).isDeleted) {
+					sql += "DROP INDEX " + indices.get(i).name;
+				} else {
+					sql += "DROP INDEX " + indices.get(i).originalName + ",\n";
+					sql += "ADD INDEX " + indices.get(i).getDefinition();
+				}
 			}
+
+			if (i < indices.size() - 1)
+				sql += ",\n";
 		}
+
+		if (isNew)
+			sql += "\n)";
+
+		// Opciones
+		if (iscbEngineChanged)
+			sql += "\nENGINE = " + cbEngine.getSelectedItem();
+
+		if (iscbCharsetChanged) {
+			if (cbCharset.getSelectedIndex() != DEFAULT)
+				sql += "\nDEFAULT CHARACTER SET = " + cbCharset.getSelectedItem();
+		}
+
+		if (iscbCollationChanged) {
+			if (cbCollation.getSelectedIndex() != DEFAULT)
+				sql += "\nCOLLATE = " + cbCollation.getSelectedItem();
+		}
+
+		if (istxtAutoIncrementChanged && txtAutoIncrement.getText().length() > 0)
+			sql += " \nAUTOINCREMENT = " + txtAutoIncrement.getText();
+
+		if (istxtCommentChanged && txtComment.getText().length() > 0)
+			sql += "\nCOMMENT '" + txtComment.getText() + "'";
+
+		sql += ";";
+
+		return sql;
 	}
 
 	public void btnCancelMouseClicked(MouseEvent e) {
@@ -438,11 +638,10 @@ public class TableTab extends DatabaseElement {
 
 	private void clean() {
 		// TODO pasar a resource.
-		// txtTableName.setText("New Table");
-		cbEngine.setSelectedItem("InnoDB");
+		cbEngine.setSelectedItem(database.getDefaultEngine());
 		txtAutoIncrement.setText("");
-		cbCharset.setSelectedIndex(0);
-		cbCollation.setSelectedIndex(0);
+		cbCharset.setSelectedIndex(DEFAULT);
+		cbCharset.setSelectedIndex(DEFAULT);
 		txtComment.setText("");
 	}
 

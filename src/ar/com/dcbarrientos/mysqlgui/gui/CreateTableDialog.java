@@ -45,15 +45,18 @@ public class CreateTableDialog extends JDialog{
 	private Database database;
 	private ResourceBundle resource;
 	private TableTab tableTab;
+	
+	private String dbName;
 		
 	public CreateTableDialog() {
 		
 	}
 	
-	public CreateTableDialog(Ventana ventana, Database database) {
+	public CreateTableDialog(Ventana ventana, Database database, String dbName) {
 		this.ventana = ventana;
 		this.database = database;
 		this.resource = ventana.resource;
+		this.dbName = dbName;
 		
 		initComponents();
 	}
@@ -63,6 +66,7 @@ public class CreateTableDialog extends JDialog{
 		setLayout(new BorderLayout());
 		
 		tableTab = new TableTab(ventana, database, true);
+		tableTab.setSelectedDatabase(dbName);
 		add(tableTab, BorderLayout.CENTER);
 		
 		setSize(300, 200);
