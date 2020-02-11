@@ -24,9 +24,10 @@
  * Created on 4 mar. 2019, 10:39:35 
  */
 
-package ar.com.dcbarrientos.mysqlgui.gui.tabs.table;
+package ar.com.dcbarrientos.mysqlgui.gui.tabs;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Vector;
@@ -50,7 +51,7 @@ import ar.com.dcbarrientos.mysqlgui.model.TableModel;
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public class TableDataTab extends DatabaseElement {
+public class DataTab extends DatabaseElement {
 	private static final long serialVersionUID = 1L;
 
 	public String title = resource.getString("DataTab.title");
@@ -79,7 +80,12 @@ public class TableDataTab extends DatabaseElement {
 	private JTextField txtLimiteCount;
 	private JButton jbOk;
 
-	public TableDataTab(Ventana ventana, Database database) {
+	public DataTab() {
+		super();
+		initComponents();
+	}
+	
+	public DataTab(Ventana ventana, Database database) {
 		super(ventana, database);
 
 		initComponents();
@@ -87,10 +93,11 @@ public class TableDataTab extends DatabaseElement {
 
 	private void initComponents() {
 		setLayout(new BorderLayout());
-		// TODO: hacer que la label diga tablename: (n registros)
-		// TODO: hacer la internacionalizacion
 
 		tableDataDescription = new JLabel("");
+		tableDataDescription.setOpaque(true);
+		tableDataDescription.setBackground(Color.BLACK);
+		tableDataDescription.setForeground(Color.WHITE);
 		add(tableDataDescription, BorderLayout.NORTH);
 
 		table = new JTable();
@@ -102,7 +109,7 @@ public class TableDataTab extends DatabaseElement {
 		toolBar = new JToolBar();
 
 		jbPrimero = new JButton();
-		jbPrimero.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/Primero.gif")));
+		jbPrimero.setIcon(new ImageIcon(DataTab.class.getResource("/images/Primero.gif")));
 		jbPrimero.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				table.setRowSelectionInterval(0, 0);
@@ -111,7 +118,7 @@ public class TableDataTab extends DatabaseElement {
 		toolBar.add(jbPrimero);
 
 		jbAnterior = new JButton();
-		jbAnterior.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/Anterior.gif")));
+		jbAnterior.setIcon(new ImageIcon(DataTab.class.getResource("/images/Anterior.gif")));
 		jbAnterior.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				int selectedRow = table.getSelectedRow();
@@ -124,7 +131,7 @@ public class TableDataTab extends DatabaseElement {
 		toolBar.add(jbAnterior);
 
 		jbSiguiente = new JButton();
-		jbSiguiente.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/Siguiente.gif")));
+		jbSiguiente.setIcon(new ImageIcon(DataTab.class.getResource("/images/Siguiente.gif")));
 		jbSiguiente.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				int selectedRow = table.getSelectedRow();
@@ -137,7 +144,7 @@ public class TableDataTab extends DatabaseElement {
 		toolBar.add(jbSiguiente);
 
 		jbUltimo = new JButton();
-		jbUltimo.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/Ultimo.gif")));
+		jbUltimo.setIcon(new ImageIcon(DataTab.class.getResource("/images/Ultimo.gif")));
 		jbUltimo.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				table.setRowSelectionInterval(tableModel.getRowCount() - 1, tableModel.getRowCount() - 1);
@@ -148,32 +155,32 @@ public class TableDataTab extends DatabaseElement {
 		toolBar.addSeparator();
 
 		jbInsertar = new JButton();
-		jbInsertar.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/InsertarRegistro.gif")));
+		jbInsertar.setIcon(new ImageIcon(DataTab.class.getResource("/images/InsertarRegistro.gif")));
 		toolBar.add(jbInsertar);
 
 		jbBorrar = new JButton();
-		jbBorrar.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/DeleteRecord.gif")));
+		jbBorrar.setIcon(new ImageIcon(DataTab.class.getResource("/images/DeleteRecord.gif")));
 		toolBar.add(jbBorrar);
 
 		jbEditar = new JButton();
-		jbEditar.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/EditRecord.gif")));
+		jbEditar.setIcon(new ImageIcon(DataTab.class.getResource("/images/EditRecord.gif")));
 		toolBar.add(jbEditar);
 
 		jbAceptar = new JButton();
-		jbAceptar.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/AceptarEdit.gif")));
+		jbAceptar.setIcon(new ImageIcon(DataTab.class.getResource("/images/AceptarEdit.gif")));
 		toolBar.add(jbAceptar);
 
 		jbCancelar = new JButton();
-		jbCancelar.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/CancelarEdit.gif")));
+		jbCancelar.setIcon(new ImageIcon(DataTab.class.getResource("/images/CancelarEdit.gif")));
 		toolBar.add(jbCancelar);
 
 		jbRefresh = new JButton();
-		jbRefresh.setIcon(new ImageIcon(TableDataTab.class.getResource("/images/RefreshData.gif")));
+		jbRefresh.setIcon(new ImageIcon(DataTab.class.getResource("/images/RefreshData.gif")));
 		toolBar.add(jbRefresh);
 
 		toolBar.addSeparator();
 
-		jcLimite = new JCheckBox("Limit:");
+		jcLimite = new JCheckBox(resource.getString("DataTab.limit"));
 		jcLimite.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				loadData();
@@ -189,7 +196,7 @@ public class TableDataTab extends DatabaseElement {
 		txtLimiteCount.setText("100");
 		toolBar.add(txtLimiteCount);
 
-		jbOk = new JButton("OK");
+		jbOk = new JButton(resource.getString("General.OK"));
 		jbOk.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				loadData();
@@ -201,9 +208,9 @@ public class TableDataTab extends DatabaseElement {
 	}
 
 	protected void loadData() {
-		if (selectedDB != null && selectedTable != null) {
+		if (selectedDB != null && selectedElement != null) {
 			
-			String sql = "Select * from " + selectedDB + "." + selectedTable;
+			String sql = "Select * from " + selectedDB + "." + selectedElement;
 			if(jcLimite.isSelected() && txtLimiteCount.getText().length() > 0 && txtLimiteInferior.getText().length() > 0)
 				sql += " limit " + txtLimiteCount.getText() + " offset " + txtLimiteInferior.getText();
 			sql += ";";
@@ -212,8 +219,9 @@ public class TableDataTab extends DatabaseElement {
 			Query query = new Query(database);
 			query.executeQuery(sql);
 
-			tableHeaders = query.getColumnsName();
+			tableHeaders = query.getColumnNames();
 			data = query.getDataAsObjectVector();
+			tableDataDescription.setText(query.getRowCount() + " " + resource.getString("DataTab.rows"));
 
 			tableModel = new TableModel(data, tableHeaders);
 			table.setModel(tableModel);

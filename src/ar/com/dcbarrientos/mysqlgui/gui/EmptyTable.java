@@ -85,7 +85,7 @@ public class EmptyTable extends JDialog {
 		panel = new JPanel();
 		panel.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 
-		btnOk = new JButton(resource.getString("EmptyTable.btnOk"));
+		btnOk = new JButton(resource.getString("General.OK"));
 		btnOk.setPreferredSize(new Dimension(100, 23));
 		btnOk.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
@@ -93,7 +93,7 @@ public class EmptyTable extends JDialog {
 			}
 		});
 
-		btnCancel = new JButton(resource.getString("EmptyTable.btnCancel"));
+		btnCancel = new JButton(resource.getString("General.cancel"));
 		btnCancel.setPreferredSize(new Dimension(100, 23));
 		btnCancel.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {

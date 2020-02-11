@@ -36,42 +36,59 @@ import ar.com.dcbarrientos.mysqlgui.db.Database;
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
  *
  */
-public abstract class DatabaseElement extends JPanel{
+public abstract class DatabaseElement extends JPanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	protected Database database;
 	protected Ventana ventana;
 	protected ResourceBundle resource;
-	
+
 	protected String selectedDB;
-	protected String selectedTable;
+	protected String selectedElement;
+	protected int selectedType;
+
+	public DatabaseElement() {
 		
-	public DatabaseElement(Ventana ventana, Database database) {
-		this.ventana = ventana;
-		this.database = database;
-		this.resource = ventana.resource;
 	}
 	
+	public DatabaseElement(Ventana ventana, Database database) {
+		if (ventana != null && database != null) {
+			this.ventana = ventana;
+			this.database = database;
+			this.resource = ventana.resource;
+		}
+	}
+
 	public void setSelectedDatabase(String db) {
 		selectedDB = db;
-		
+		selectedType = Database.DATABASE;
+
 		refresh();
 	}
-	
+
 	public void setSelectedTable(String db, String table) {
-		selectedTable = table;
+		selectedElement = table;
 		setSelectedDatabase(db);
-		
-		refresh();
+		selectedType = Database.TABLE;
+
+//		refresh();
 	}
-	
+
+	public void setSelectedElement(String db, String element, int type) {
+		this.selectedDB = db;
+		this.selectedElement = element;
+		this.selectedType = type;
+
+//		refresh();
+	}
+
 	public void refresh() {
 		loadData();
 		revalidate();
 		repaint();
 	}
-	
+
 	protected void loadData() {
-		
+
 	}
 }

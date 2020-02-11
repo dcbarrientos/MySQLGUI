@@ -60,6 +60,7 @@ public class SQLTextArea extends RSyntaxTextArea{
 		
 		return provider;
 	}
+	
 }
 
 /*

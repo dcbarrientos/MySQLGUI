@@ -42,6 +42,7 @@ import ar.com.dcbarrientos.mysqlgui.gui.tabs.DatabaseTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.HostTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.QueryTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.TableTab;
+import ar.com.dcbarrientos.mysqlgui.gui.tabs.ViewTab;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -64,6 +65,7 @@ public class MainPanel extends JPanel {
 	private QueryTab queryTab;
 	private DatabaseTab databaseTab = null;
 	private TableTab tableTab = null;
+	private ViewTab viewTab = null;
 	private JTextArea txtMessages;
 
 	public MainPanel(Ventana ventana) {
@@ -119,22 +121,23 @@ public class MainPanel extends JPanel {
 		txtMessages.append(id + msg + "\n");
 
 	}
-	
+
 	public void selectRoot() {
-		database.setSelectedTable("", "");
-		if(tableTab != null) {
+//		database.setSelectedTable("", "");
+		database.setSelectedElement("", "", Database.NONE);
+		if (tableTab != null) {
 			tabList.remove(tableTab);
 			tabbedPane.remove(tableTab);
 			tableTab = null;
 		}
-		if(databaseTab != null) {	
+		if (databaseTab != null) {
 			tabList.remove(databaseTab);
 			tabbedPane.remove(databaseTab);
 			databaseTab = null;
 		}
-		
+
 		tabbedPane.repaint();
-		
+
 		tabbedPane.setSelectedIndex(HOST_INDEX);
 	}
 
@@ -153,29 +156,81 @@ public class MainPanel extends JPanel {
 				tabbedPane.remove(tableTab);
 				tableTab = null;
 				tabbedPane.repaint();
+			} else if (viewTab != null && show) {
+				tabList.remove(viewTab);
+				tabbedPane.remove(viewTab);
+				viewTab = null;
+				tabbedPane.repaint();
 			}
+			// Faltan los else if para storeProcedure y function
 		}
 		databaseTab.setSelectedDatabase(selectedDB);
 
 		if (show)
 			tabbedPane.setSelectedIndex(DATABASE_INDEX);
+
+		//TODO: Cuando selecciono una base de datos me anula la selección en el jtree
+		tree.setSelectedDatabase(selectedDB);
 	}
 
 	public void setSelectedTable(String selectedDB, String selectedTable) {
 		// TODO: cuando se hace click en una tabla.
-		database.setSelectedTable(selectedDB, selectedTable);
+//		database.setSelectedTable(selectedDB, selectedTable);
+		database.setSelectedElement(selectedDB, selectedTable, Database.TABLE);
 
 		setSelectedDatabase(selectedDB, false);
+		if (viewTab != null) {
+			tabList.remove(viewTab);
+			tabbedPane.remove(viewTab);
+			viewTab = null;
+		}
 		if (tableTab == null) {
 			tableTab = new TableTab(ventana, database, false);
 			tabList.add(tableTab);
 			tabbedPane.insertTab(tableTab.title + selectedTable, null, tableTab, null, TABLE_INDEX);
 		} else {
 			tabbedPane.setTitleAt(TABLE_INDEX, tableTab.title + selectedTable);
+			tabbedPane.repaint();
+			// TODO: faltan los else if de stored procedure y function
 
 		}
 		tableTab.setSelectedTable(selectedDB, selectedTable);
 		tabbedPane.setSelectedIndex(TABLE_INDEX);
+
+		// tree.setSelectedTable(selectedDB, selectedTable);
+	}
+
+	public void setSelectedView(String selectedDB, String selectedView) {
+		database.setSelectedElement(selectedDB, selectedView, Database.VIEW);
+
+		setSelectedDatabase(selectedDB, false);
+		if (tableTab != null) {
+			tabList.remove(tableTab);
+			tabbedPane.remove(tableTab);
+			tableTab = null;
+			// TODO: faltan los else if de stored procedure y function
+		}
+		if (viewTab == null) {
+			viewTab = new ViewTab(ventana, database, false);
+			tabList.add(viewTab);
+			tabbedPane.insertTab(viewTab.title + selectedView, null, viewTab, null, TABLE_INDEX);
+		} else {
+			tabbedPane.setTitleAt(TABLE_INDEX, viewTab.title + selectedView);
+			tabbedPane.repaint();
+		}
+		if (selectedView.length() == 0)
+			viewTab.setEmptyElement(selectedDB);
+		else
+			viewTab.setSelectedElement(selectedDB, selectedView, Database.VIEW);
+		tabbedPane.setSelectedIndex(TABLE_INDEX);
+	}
+
+	public void setTreeSelection(String db, String element, int type, boolean show) {
+		tree.setSelection(db, element, type, show);
+	}
+
+	public void setTreeSelection(String db, boolean show) {
+		tree.setSelection(db, show);
 	}
 
 	public void deleteDatabase() {
@@ -193,7 +248,8 @@ public class MainPanel extends JPanel {
 				tabList.remove(databaseTab);
 				tabbedPane.remove(databaseTab);
 				databaseTab = null;
-				database.setSelectedTable("", "");
+//				database.setSelectedTable("", "");
+				database.setSelectedElement("", "", Database.NONE);
 				// databaseTree.selectRoot();
 
 				refresh();
@@ -209,13 +265,13 @@ public class MainPanel extends JPanel {
 		for (DatabaseElement element : tabList)
 			element.refresh();
 	}
-	
+
 	public void selectTableTab(int index) {
 		tableTab.selectTab(index);
 	}
-	
+
 	public void showTableData(String databaseName, String tableName) {
-		if(tableTab != null) {
+		if (tableTab != null) {
 			tableTab.selectTab(TableTab.DATA_INDEX);
 		}
 	}

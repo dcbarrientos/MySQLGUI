@@ -162,7 +162,7 @@ public class TableIndexesTab extends DatabaseElement {
 			String[] lineas = definition.split("\n");
 
 			for (int i = 0; i < lineas.length; i++) {
-				if (!lineas[i].trim().startsWith("`")) {
+				if(isIndex(lineas[i].trim())) {
 					addRecord(lineas[i].trim());
 				}
 			}
@@ -196,9 +196,8 @@ public class TableIndexesTab extends DatabaseElement {
 	}
 
 	private void addRecord(String linea) {
-		if (isIndex(linea)) {
-			String[] datos = linea.split(" ");
-			IndexModel indexModel = new IndexModel();
+		String[] datos = linea.split(" ");
+		IndexModel indexModel = new IndexModel();
 
 //		  PRIMARY KEY (`id`),
 //		  UNIQUE KEY `index4` (`f1`),
@@ -206,79 +205,84 @@ public class TableIndexesTab extends DatabaseElement {
 //		  KEY `secundaria` (`f1`) USING BTREE KEY_BLOCK_SIZE=22 COMMENT ''''''comment'''''',
 //		  FULLTEXT KEY `sdfasdf` (`f1`) COMMENT ''comentarios''
 
-			int i = 0;
+		int i = 0;
 
-			// Tipo de indice
-			if (datos[i].equals("KEY")) {
-				indexModel.indexType = "INDEX";
-			} else {
-				indexModel.indexType = datos[i];
-				i++;
-			}
+		// Tipo de indice
+		if (datos[i].equals("KEY")) {
+			indexModel.indexType = "INDEX";
+		} else {
+			indexModel.indexType = datos[i];
 			i++;
-
-			// Nombre si lo tiene
-			if (!indexModel.indexType.equals("PRIMARY")) {
-				indexModel.name = Database.trimCuote(datos[i]);
-				i++;
-			} else
-				indexModel.name = "PRIMARY";
-
-			String tmp = linea.substring(linea.indexOf('(') + 1, linea.lastIndexOf(')'));
-			String[] indexColumns = tmp.split(",");
-
-			for (int in = 0; in < indexColumns.length; in++) {
-				String f = indexColumns[in];
-
-				String name = f.substring(1, f.lastIndexOf('`'));
-
-				String length = "";
-				if (f.indexOf('(') > 0)
-					length = f.substring(f.indexOf('(') + 1, f.indexOf(')'));
-
-				String order = "";
-				if (f.contains(IndexModel.COMBO_DESC))
-					order = IndexModel.COMBO_DESC;
-
-				indexModel.addField(name, length, order);
-			}
-
-			i++;
-			while (i < datos.length) {
-				switch (datos[i]) {
-				case "USING":
-					i++;
-					indexModel.storageType = datos[i];
-					break;
-				case "COMMENT":
-					i++;
-					indexModel.comment = Database.trimCuote(datos[i].substring(0, datos[i].length() - 1));
-					break;
-				case "VISIBLE":
-					indexModel.visible = true;
-					break;
-				case "INVISIBLE":
-					indexModel.visible = false;
-					break;
-				case "WITH":
-					i += 2;
-					indexModel.parser = Database.trimCuote(datos[i]);
-				default:
-					if (datos[i].startsWith("KEY_BLOCK_SIZE")) {
-						indexModel.blockSize = datos[i].substring(datos[i].indexOf("=") + 1);
-					}
-					break;
-				}
-
-				i++;
-			}
-			definitionIndexes.add(indexModel);
-			// alterIndexes.add(indexModel);
 		}
+		i++;
+
+		// Nombre si lo tiene
+		if (!indexModel.indexType.equals("PRIMARY")) {
+			indexModel.name = Database.trimCuote(datos[i]);
+			i++;
+		} else
+			indexModel.name = "PRIMARY";
+
+		String tmp = linea.substring(linea.indexOf('(') + 1, linea.lastIndexOf(')'));
+		String[] indexColumns = tmp.split(",");
+
+		for (int in = 0; in < indexColumns.length; in++) {
+			String f = indexColumns[in];
+
+			String name = f.substring(1, f.lastIndexOf('`'));
+
+			String length = "";
+			if (f.indexOf('(') > 0)
+				length = f.substring(f.indexOf('(') + 1, f.indexOf(')'));
+
+			String order = "";
+			if (f.contains(IndexModel.COMBO_DESC))
+				order = IndexModel.COMBO_DESC;
+
+			indexModel.addField(name, length, order);
+		}
+
+		i++;
+		while (i < datos.length) {
+			switch (datos[i]) {
+			case "USING":
+				i++;
+				indexModel.storageType = datos[i];
+				break;
+			case "COMMENT":
+				i++;
+				indexModel.comment = Database.trimCuote(datos[i].substring(0, datos[i].length() - 1));
+				break;
+			case "VISIBLE":
+				indexModel.visible = true;
+				break;
+			case "INVISIBLE":
+				indexModel.visible = false;
+				break;
+			case "WITH":
+				i += 2;
+				indexModel.parser = Database.trimCuote(datos[i]);
+			default:
+				if (datos[i].startsWith("KEY_BLOCK_SIZE")) {
+					indexModel.blockSize = datos[i].substring(datos[i].indexOf("=") + 1);
+				}
+				break;
+			}
+
+			i++;
+		}
+		definitionIndexes.add(indexModel);
+		// alterIndexes.add(indexModel);
 	}
-	
+
 	private boolean isIndex(String linea) {
-		//linea.startsWith("PRIMARY") || linea.startsWith("KEY") || linea.startsWith("INDEX"
+		// linea.startsWith("PRIMARY") || linea.startsWith("KEY") ||
+		// linea.startsWith("INDEX"
+		if(linea.trim().startsWith("`") || linea.startsWith("CONSTRAINT")) {
+			return false;
+		}
+		
+		return true;
 	}
 
 	public void setColumns(Vector<ColumnModel> columns) {
@@ -316,7 +320,7 @@ public class TableIndexesTab extends DatabaseElement {
 			String indexName = (String) table.getValueAt(fila, 1);
 
 			NewIndexDialog nid = new NewIndexDialog(ventana, columns, getIndex(definitionIndexes, indexName),
-					selectedTable);
+					selectedElement);
 			IndexModel indexModel = nid.showDialog();
 			if (indexModel != null) {
 				int in = replaceIndex(definitionIndexes, indexName, indexModel);
@@ -334,7 +338,7 @@ public class TableIndexesTab extends DatabaseElement {
 	}
 
 	public void btnAddMouseClicked(MouseEvent e) {
-		NewIndexDialog nid = new NewIndexDialog(ventana, columns, selectedTable);
+		NewIndexDialog nid = new NewIndexDialog(ventana, columns, selectedElement);
 		IndexModel indexModel = nid.showDialog();
 
 		if (indexModel != null) {
@@ -432,7 +436,7 @@ public class TableIndexesTab extends DatabaseElement {
 	}
 
 	public void setTableName(String tableName) {
-		selectedTable = tableName;
+		selectedElement = tableName;
 	}
 
 	private void mostrarLista(Vector<IndexModel> lista) {

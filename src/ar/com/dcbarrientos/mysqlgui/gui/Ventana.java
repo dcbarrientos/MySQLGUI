@@ -219,15 +219,31 @@ public class Ventana extends JFrame {
 	}
 
 	public void setSelectedDatabase(String selectedDb) {
-		// TODO: cuando se hace click en una base de datos en tree.
-
 		mainPanel.setSelectedDatabase(selectedDb, true);
 	}
 
 	public void setSelectedTable(String selectedDB, String selectedTable) {
-		// TODO: cuando se hace click en una table en tree.
-
 		mainPanel.setSelectedTable(selectedDB, selectedTable);
+	}
+	
+	public void setSelectedView(String selectedDB, String selectedView) {
+		mainPanel.setSelectedView(selectedDB, selectedView);
+	}
+	
+//	public void setSelectedStoredProcedure(String selectedDB, String selectedStoredProcedure) {
+//		mainPanel.setselectedStoredProcedure(selectedDB, selectedStoredProcedure);
+//	}
+//	
+//	public void setSelectedFunction(String selectedDB, String selectedFunction) {
+//		mainPanel.setSelectedFunction(selectedDB, selectedFunction);
+//	}
+	
+	public void setTreeSelection(String db, String element, int type, boolean show) {
+		mainPanel.setTreeSelection(db, element, type, show);
+	}
+	
+	public void setTreeSelection(String db, boolean show) {
+		mainPanel.setTreeSelection(db, show);
 	}
 
 	public void refresh() {

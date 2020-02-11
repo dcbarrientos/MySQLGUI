@@ -27,18 +27,28 @@
 package ar.com.dcbarrientos.mysqlgui.gui;
 
 import java.awt.BorderLayout;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Enumeration;
 
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 import javax.swing.JTree;
+import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.db.Query;
+import ar.com.dcbarrientos.mysqlgui.model.TreeElement;
+import ar.com.dcbarrientos.mysqlgui.model.TreeRenderer;
 
 /**
  * @author Diego Barrientos <dc_barrientos@yahoo.com.ar>
@@ -51,15 +61,22 @@ public class DatabaseTree extends DatabaseElement {
 	private DefaultTreeModel treeModel;
 	private DefaultMutableTreeNode id;
 
-	private DefaultTreeCellRenderer renderer;
-	private ImageIcon databaseClosedNode;
-	private ImageIcon databaseOpenedNode;
-	private ImageIcon tableNode;
+	private TreeRenderer renderer;
 
-	public final int ROOT_COUNT = 0;
-	public final int USER_COUNT = 1;
-	public final int DATABASE_COUNT = 2;
-	public final int TABLE_COUNT = 3;
+	private ImageIcon openServerIcon = new ImageIcon(getClass().getResource("/images/DatabaseServer.gif"));
+	private ImageIcon closeServerIcon = new ImageIcon(getClass().getResource("/images/DatabaseServer.gif"));
+	private ImageIcon openDatabaseIcon = new ImageIcon(getClass().getResource("/images/Database.gif"));
+	private ImageIcon closeDatabaseIcon = new ImageIcon(getClass().getResource("/images/database2.gif"));
+	private ImageIcon openTableIcon = new ImageIcon(getClass().getResource("/images/table.gif"));
+	private ImageIcon closeTableIcon = new ImageIcon(getClass().getResource("/images/table2.gif"));
+	// TODO: Cambiar iconos
+	private ImageIcon openViewIcon = new ImageIcon(getClass().getResource("/images/close.gif"));
+	private ImageIcon closeViewIcon = new ImageIcon(getClass().getResource("/images/close2.gif"));
+
+	public final boolean isTreeSelecting = false; // Determina si tree está cambiando la selección o viene de otra
+													// parte. Por ej: cuando
+
+	private boolean isExpandingCollasing;
 
 	public DatabaseTree(Ventana ventana, Database database) {
 		super(ventana, database);
@@ -70,16 +87,8 @@ public class DatabaseTree extends DatabaseElement {
 	private void initComponents() {
 		tree = new JTree();
 
-		databaseClosedNode = new ImageIcon(getClass().getResource("/images/Database2.gif"));
-		databaseOpenedNode = new ImageIcon(getClass().getResource("/images/database.gif"));
-		tableNode = new ImageIcon(getClass().getResource("/images/table.gif"));
-
-		renderer = new DefaultTreeCellRenderer();
-		renderer.setOpenIcon(databaseOpenedNode);
-		renderer.setClosedIcon(databaseClosedNode);
-		renderer.setLeafIcon(tableNode);
-
 		loadData();
+		renderer = new TreeRenderer();
 		tree.setCellRenderer(renderer);
 
 		tree.expandPath(new TreePath(id.getPath()));
@@ -90,12 +99,50 @@ public class DatabaseTree extends DatabaseElement {
 			}
 
 		});
+		tree.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				mouseAndKeyEvent();
+			}
+		});
+		tree.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				mouseAndKeyEvent();
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
+		});
+		tree.addTreeWillExpandListener(new TreeWillExpandListener() {
+
+			@Override
+			public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
+				// TODO Auto-generated method stub
+				isExpandingCollasing = true;
+			}
+
+			@Override
+			public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+				// TODO Auto-generated method stub
+				isExpandingCollasing = true;
+
+			}
+
+		});
+
 		setLayout(new BorderLayout());
 		add(tree, BorderLayout.CENTER);
 	}
 
 	protected void loadData() {
-		id = new DefaultMutableTreeNode(database.getConnectionID());
+		TreeElement e = new TreeElement(database.getConnectionID(), Database.SERVER, openServerIcon, closeServerIcon);
+		id = new DefaultMutableTreeNode(e);
 		treeModel = new DefaultTreeModel(id);
 
 		DefaultMutableTreeNode db;
@@ -103,22 +150,62 @@ public class DatabaseTree extends DatabaseElement {
 		Query query = new Query(database);
 		query.executeQuery("SHOW DATABASES;");
 		while (query.next()) {
-			db = new DefaultMutableTreeNode(query.getString(1));
-			treeModel.insertNodeInto(db, id, id.getChildCount());
+			e = new TreeElement(query.getString(1), Database.DATABASE, openDatabaseIcon, closeDatabaseIcon);
+			db = new DefaultMutableTreeNode(e);
 
+			// Procedimiento para cargar tablas y vistas en el tree
 			Query tableQuery = new Query(database);
 			String sql = String.format(Query.SQL_SHOW_TABLES_FROM, query.getString(1));
 			tableQuery.executeQuery(sql);
-			boolean empty = true;
+			boolean emptyTables = true;
+			boolean emptyViews = true;
+
+			TreeElement te = new TreeElement(resource.getString("DatabaseTree.tables"), Database.SEPARATOR,
+					openTableIcon, closeTableIcon);
+			DefaultMutableTreeNode tables = new DefaultMutableTreeNode(te);
+			TreeElement ve = new TreeElement(resource.getString("DatabaseTree.views"), Database.SEPARATOR, openViewIcon,
+					closeViewIcon);
+			DefaultMutableTreeNode views = new DefaultMutableTreeNode(ve);
+
 			while (tableQuery.next()) {
-				empty = false;
-				DefaultMutableTreeNode table = new DefaultMutableTreeNode(tableQuery.getString(1));
-				treeModel.insertNodeInto(table, db, db.getChildCount());
+				if (tableQuery.getString("table_type").equals("VIEW")) {
+					emptyViews = false;
+					e = new TreeElement(tableQuery.getString(1), Database.VIEW, openViewIcon, closeViewIcon);
+					DefaultMutableTreeNode view = new DefaultMutableTreeNode(e);
+					views.add(view);
+				} else if (tableQuery.getString("table_type").equals("BASE TABLE")) {
+					emptyTables = false;
+					e = new TreeElement(tableQuery.getString(1), Database.TABLE, openTableIcon, closeTableIcon);
+					DefaultMutableTreeNode table = new DefaultMutableTreeNode(e);
+					tables.add(table);
+				}
+
 			}
-			if (empty) {
-				DefaultMutableTreeNode table = new DefaultMutableTreeNode(resource.getString("DatabaseTree.txtEmpty"));
-				treeModel.insertNodeInto(table, db, db.getChildCount());
+			if (emptyTables) {
+				e = new TreeElement(resource.getString("DatabaseTree.txtEmpty"), Database.TABLE, openTableIcon,
+						closeTableIcon);
+				DefaultMutableTreeNode table = new DefaultMutableTreeNode(e);
+				tables.add(table);
 			}
+			if (emptyViews) {
+				e = new TreeElement(resource.getString("DatabaseTree.txtEmpty"), Database.VIEW, openViewIcon,
+						closeViewIcon);
+				DefaultMutableTreeNode view = new DefaultMutableTreeNode(e);
+				views.add(view);
+			}
+			db.add(tables);
+			db.add(views);
+			id.add(db);
+			// Fin procedimiento que carga tablas y vistas en el tree
+
+			// Procedimiento que carga Stored Procedures en el tree
+			// TODO: Procedimiento que carga StoredProcedures en el tree
+			// Fin del procedimiento que carga Stored Procedures en el tree
+
+			// Procedimiento que carga Funciones en el tree
+			// TODO: Procedimiento que carga Funciones en el tree
+			// Fin del procedimiento que carga Funciones en el tree
+
 			tableQuery.close();
 		}
 		query.close();
@@ -126,38 +213,181 @@ public class DatabaseTree extends DatabaseElement {
 
 	}
 
+	private boolean isCategory(TreePath path) {
+		TreeElement e = getLastElement(path);
+		if (e.type == Database.SEPARATOR) {
+			return true;
+		}
+		return false;
+	}
+
 	private boolean isDatabase(TreePath path) {
-		if (path.getPathCount() == DATABASE_COUNT)
+		TreeElement e = getLastElement(path);
+		if (e.type == Database.DATABASE)
 			return true;
 		return false;
 	}
 
 	private boolean isTable(TreePath path) {
-		if (path.getPathCount() == TABLE_COUNT)
+		TreeElement e = getLastElement(path);
+		if (e.type == Database.TABLE)
+			return true;
+		return false;
+	}
+
+	private boolean isStoredProcedure(TreePath path) {
+		TreeElement e = getLastElement(path);
+		if (e.type == Database.STORED_PROCEDURE)
+			return true;
+		return false;
+	}
+
+	private boolean isView(TreePath path) {
+		TreeElement e = getLastElement(path);
+		if (e.type == Database.VIEW)
+			return true;
+		return false;
+	}
+
+	private boolean isFunction(TreePath path) {
+		TreeElement e = getLastElement(path);
+		if (e.type == Database.FUNCTION)
 			return true;
 		return false;
 	}
 
 	public void treeValueChanged(TreeSelectionEvent e) {
 		TreePath path = e.getPath();
-		
-		String dbName = "";
-		String tbName = "";
-		if(isDatabase(path))
-			dbName = path.getLastPathComponent().toString();
-		else if(isTable(path)) {
-			dbName = path.getPathComponent(DATABASE_COUNT -1).toString();
-			tbName = path.getLastPathComponent().toString();
+		if (isCategory(path)) {
+			selectedDB = getElementAt(path, path.getPathCount() - 2).name;
+			selectedElement = "";
+			selectedType = Database.SEPARATOR;
+		} else {
+			if (isDatabase(path)) {
+				selectedDB = getLastElement(path).name;
+				selectedElement = "";
+				selectedType = Database.DATABASE;
+			} else if (isTable(path)) {
+				selectedDB = getElementAt(path, path.getPathCount() - 3).name;
+				selectedElement = getLastElement(path).name;
+				selectedType = Database.TABLE;
+			} else if (isView(path)) {
+				selectedDB = getElementAt(path, path.getPathCount() - 3).name;
+				selectedElement = getLastElement(path).name;
+				selectedType = Database.VIEW;
+			} else if (isStoredProcedure(path)) {
+				selectedDB = getElementAt(path, path.getPathCount() - 3).name;
+				selectedElement = getLastElement(path).name;
+				selectedType = Database.STORED_PROCEDURE;
+			} else if (isFunction(path)) {
+				selectedDB = getElementAt(path, path.getPathCount() - 3).name;
+				selectedElement = getLastElement(path).name;
+				selectedType = Database.FUNCTION;
+			}
+		}
+	}
+
+	public void mouseAndKeyEvent() {
+		if (!isExpandingCollasing) {
+			if (selectedType == Database.DATABASE || selectedType == Database.TABLE || selectedType == Database.VIEW) {
+				int r = database.existeTabla(selectedDB, selectedElement);
+				if (r == -2) {
+					selectRoot();
+				} else if (r == -1) {
+					ventana.setSelectedDatabase(selectedDB);
+				} else {
+					if (selectedType == Database.TABLE)
+						ventana.setSelectedTable(selectedDB, selectedElement);
+					else
+						ventana.setSelectedView(selectedDB, selectedElement);
+//					JOptionPane.showMessageDialog(null, "Selecciono la vista " + selectedDB + "." + selectedElement);
+					// TODO: falta implementar mostrar vistas
+				}
+				System.out.println("Mostrar");
+			} else if (selectedType == Database.STORED_PROCEDURE) {
+				// TODO: falta implementar
+				JOptionPane.showMessageDialog(null,
+						"Selecciono el Stored Procedure " + selectedDB + "." + selectedElement);
+			} else if (selectedType == Database.FUNCTION) {
+				// TODO: Falta implementar
+				JOptionPane.showMessageDialog(null, "Selecciono la funcion " + selectedDB + "." + selectedElement);
+			}
+		}
+		isExpandingCollasing = false;
+	}
+
+	/**
+	 * Selecciona un elemento de una base de datos
+	 * 
+	 * @param db      Nombre de la base de datos que contiene el elemento.
+	 * @param element Nombre del elemento a buscar
+	 * @param type    Tipo de elemento a buscar.
+	 * @param show    Verdadero si se debe mostrar el nodo encontrado.
+	 * @return Devuelve el nodo encontrado.
+	 */
+	public DefaultMutableTreeNode setSelection(String db, String element, int type, boolean show) {
+		DefaultMutableTreeNode dbNode = setSelection(db, false);
+		if (dbNode != null) {
+			return setElementSelection(dbNode, element, type, show);
 		}
 
-		int r = database.existeTabla(dbName, tbName); 
-		if(r == -2) {
-			selectRoot();
-		} else if(r == -1) {
-			ventana.setSelectedDatabase(dbName);
-		} else{
-			ventana.setSelectedTable(dbName, tbName);
+		return null;
+	}
+
+	/**
+	 * Busca un elemento a partir del Root
+	 * 
+	 * @param element Nombre del elemento a buscar
+	 * @param show    Verdadero si se debe mostar el nodo encontrado
+	 * @return Devuelve el nodo encontrado.
+	 */
+	public DefaultMutableTreeNode setSelection(String element, boolean show) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getModel().getRoot();
+		return setElementSelection(node, element, Database.DATABASE, show);
+
+	}
+
+	/**
+	 * Selecciona un nodo a partir de un nodo padre.
+	 * 
+	 * @param node    Nodo padre a partir del cual se hace la busqueda.
+	 * @param element Nombre del elemento a buscar
+	 * @param type    Tipo de elemento a buscar
+	 * @param show    Verdadero si se debe mostrar el nodo encontrado
+	 * @return Devuelve el nodo encontrado.
+	 */
+	public DefaultMutableTreeNode setElementSelection(DefaultMutableTreeNode node, String element, int type,
+			boolean show) {
+		Enumeration<?> enumeration = node.depthFirstEnumeration();
+		TreeElement r;
+		while (enumeration.hasMoreElements()) {
+			DefaultMutableTreeNode n = (DefaultMutableTreeNode) enumeration.nextElement();
+			r = (TreeElement) n.getUserObject();
+			if (r.name.equals(element) && r.type == type) {
+				if (show) {
+					TreePath tp = new TreePath(n.getPath());
+					tree.scrollPathToVisible(tp);
+					tree.setSelectionPath(tp);
+				}
+				return n;
+			}
 		}
+
+		return null;
+	}
+
+	private TreeElement getElement(DefaultMutableTreeNode node) {
+		return (TreeElement) (node.getUserObject());
+	}
+
+	private TreeElement getLastElement(TreePath path) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+		return getElement(node);
+	}
+
+	private TreeElement getElementAt(TreePath path, int pos) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getPathComponent(pos);
+		return getElement(node);
 	}
 
 	@Override
@@ -166,6 +396,10 @@ public class DatabaseTree extends DatabaseElement {
 
 		tree.revalidate();
 		tree.repaint();
+	}
+
+	public void setSelectedDatabase(String db) {
+		setSelection(db, false);
 	}
 
 	public void selectRoot() {

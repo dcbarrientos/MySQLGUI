@@ -103,14 +103,14 @@ public class CopyTable extends JDialog {
 		panel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "", TitledBorder.LEADING,
 				TitledBorder.TOP, null, new Color(0, 0, 0)));
 
-		btnOk = new JButton(resource.getString("CopyTable.btnOk"));
+		btnOk = new JButton(resource.getString("General.OK"));
 		btnOk.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				btnOkMouseClicked(e);
 			}
 		});
 
-		btnCancel = new JButton(resource.getString("CopyTable.btnCancel"));
+		btnCancel = new JButton(resource.getString("General.cancel"));
 		btnCancel.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				btnCancelMouseClicked(e);
@@ -205,7 +205,7 @@ public class CopyTable extends JDialog {
 
 		setDescription();
 
-		setTitle(resource.getString("CopyTable.title"));
+		setTitle(resource.getString("General.copyTable"));
 		getContentPane().setLayout(groupLayout);
 		setPreferredSize(new Dimension(450, 200));
 		pack();

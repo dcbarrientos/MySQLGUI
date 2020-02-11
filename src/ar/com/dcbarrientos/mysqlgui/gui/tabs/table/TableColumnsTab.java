@@ -69,10 +69,10 @@ public class TableColumnsTab extends DatabaseElement {
 	private final int COLUMN_ZEROFILL_INDEX = 6;
 	private final int COLUMN_UNSIGNED_INDEX = 7;
 
-	private final int COLUMN_KEY_INDEX = 8;
+	//private final int COLUMN_KEY_INDEX = 8;
 	private final int COLUMN_DEFAULT_INDEX = 9;
-	private final int COLUMN_EXTRA_INDEX = 10;
-	private final int COLUMN_EXPRESSION_INDEX = 11;
+	//private final int COLUMN_EXTRA_INDEX = 10;
+	//private final int COLUMN_EXPRESSION_INDEX = 11;
 	private final int COLUMN_COMMENT_INDEX = 12;
 	private final int COLUMN_COLLATION_INDEX = 13;
 
@@ -205,10 +205,10 @@ public class TableColumnsTab extends DatabaseElement {
 		loadTableData();
 	}
 
-	private void showDefinition() {
-		for (ColumnModel c : definitionColumns)
-			System.out.println(c.getDefinition());
-	}
+//	private void showDefinition() {
+//		for (ColumnModel c : definitionColumns)
+//			System.out.println(c.getDefinition());
+//	}
 
 	public void addRecord(String linea) {
 		String[] datos = linea.split(" ");

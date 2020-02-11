@@ -67,6 +67,7 @@ public class CreateTableDialog extends JDialog{
 		
 		tableTab = new TableTab(ventana, database, true);
 		tableTab.setSelectedDatabase(dbName);
+		tableTab.parent = this;
 		add(tableTab, BorderLayout.CENTER);
 		
 		setSize(300, 200);
@@ -76,5 +77,9 @@ public class CreateTableDialog extends JDialog{
 	
 	public void showDialog() {
 		setVisible(true);
+	}
+	
+	public void close() {
+		dispose();
 	}
 }

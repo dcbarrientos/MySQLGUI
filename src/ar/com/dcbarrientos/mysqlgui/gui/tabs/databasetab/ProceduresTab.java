@@ -101,9 +101,7 @@ public class ProceduresTab extends DatabaseElement {
 		query.executeQuery(sql);
 		ventana.addMessage(sql);
 
-		String[] columnNames = { "Name", "Type", "Definer", "Modified", "Created", "Security_Type",
-				"character_set_client", "collation_connection", "Database Collation", "Comment" };
-		datos = query.getDataAsStringVector(columnNames);
+		datos = query.getDataAsObjectVector();
 
 		tableModel.setData(datos);
 

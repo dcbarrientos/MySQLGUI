@@ -106,6 +106,10 @@ public class DatabaseTab extends DatabaseElement {
 		tabList.add(eventsPanel);
 		tabPane.insertTab(eventsPanel.title, null, eventsPanel, null, EVENTS_INDEX);		
 	}
+	
+	public void setTreeSelection(String databaseName, String element, int type) {
+		ventana.setTreeSelection(databaseName, element, type, true);
+	}
 
 	public void setSelectedDatabase(String databaseName) {
 		this.selectedDB = databaseName;

@@ -54,12 +54,12 @@ import javax.swing.event.ChangeListener;
 
 import ar.com.dcbarrientos.mysqlgui.db.Database;
 import ar.com.dcbarrientos.mysqlgui.db.Query;
+import ar.com.dcbarrientos.mysqlgui.gui.CreateTableDialog;
 import ar.com.dcbarrientos.mysqlgui.gui.DatabaseElement;
 import ar.com.dcbarrientos.mysqlgui.gui.ScriptToDatabaseDialog;
 import ar.com.dcbarrientos.mysqlgui.gui.Ventana;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableColumnsTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableDDLTab;
-import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableDataTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableForeignKeysTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableGrantsTab;
 import ar.com.dcbarrientos.mysqlgui.gui.tabs.table.TableIndexesTab;
@@ -78,6 +78,8 @@ public class TableTab extends DatabaseElement {
 	private static final long serialVersionUID = 1L;
 
 	public String title = resource.getString("TableTab.title");
+	public CreateTableDialog parent;
+
 	private boolean isNew;
 	private String sqlCreateTable;
 
@@ -111,17 +113,11 @@ public class TableTab extends DatabaseElement {
 
 	private String txtAutoIncrementOriginal;
 	private String cbEngineOriginal;
-	private String txtTableNameOriginal;
 	private String cbCharsetOriginal;
 	private String cbCollationOriginal;
 	private String txtCommentOriginal;
 
-	private boolean istxtAutoIncrementChanged;
-	private boolean iscbEngineChanged;
-	private boolean istxtTableNameChanged;
-	private boolean iscbCharsetChanged;
-	private boolean iscbCollationChanged;
-	private boolean istxtCommentChanged;
+	private boolean isTableChanged;
 
 	private JTabbedPane tabPane;
 	private TableInfoTab tableInfoTab;
@@ -133,7 +129,7 @@ public class TableTab extends DatabaseElement {
 	private TableGrantsTab tableGrantsTab;
 	private TableOptionsTab tableOptionsTab;
 	private TableDDLTab tableDDLTab;
-	private TableDataTab tableDataTab;
+	private DataTab tableDataTab;
 	private JPanel buttonPanel;
 	private JButton btnApply;
 	private JButton btnCancel;
@@ -186,20 +182,20 @@ public class TableTab extends DatabaseElement {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (txtAutoIncrement.getText().equals(txtAutoIncrementOriginal))
-					istxtAutoIncrementChanged = false;
-				else
-					istxtAutoIncrementChanged = true;
+//				if (txtAutoIncrement.getText().equals(txtAutoIncrementOriginal))
+//					istxtAutoIncrementChanged = false;
+//				else
+//					istxtAutoIncrementChanged = true;
 			}
 		});
 
 		cbEngine = new JComboBox<String>(getComboList(Query.SQL_ENGINE_LIST, "Engine", ""));
 		cbEngine.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				if (((String) cbEngine.getSelectedItem()).equals(cbEngineOriginal))
-					iscbEngineChanged = true;
-				else
-					iscbEngineChanged = false;
+//				if (((String) cbEngine.getSelectedItem()).equals(cbEngineOriginal))
+//					iscbEngineChanged = true;
+//				else
+//					iscbEngineChanged = false;
 			}
 		});
 
@@ -210,10 +206,10 @@ public class TableTab extends DatabaseElement {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (txtTableName.getText().equals(txtTableNameOriginal))
-					istxtTableNameChanged = false;
-				else
-					istxtTableNameChanged = true;
+//				if (txtTableName.getText().equals(txtTableNameOriginal))
+//					istxtTableNameChanged = false;
+//				else
+//					istxtTableNameChanged = true;
 			}
 
 			public void keyPressed(KeyEvent e) {
@@ -233,10 +229,10 @@ public class TableTab extends DatabaseElement {
 						cbCollation.setModel(cbm);
 					}
 				}
-				if (((String) cbCharset.getSelectedItem()).equals(cbCharsetOriginal))
-					iscbCharsetChanged = false;
-				else
-					iscbCharsetChanged = true;
+//				if (((String) cbCharset.getSelectedItem()).equals(cbCharsetOriginal))
+//					iscbCharsetChanged = false;
+//				else
+//					iscbCharsetChanged = true;
 			}
 		});
 
@@ -245,10 +241,10 @@ public class TableTab extends DatabaseElement {
 		cbCollation.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				if (((String) cbCollation.getSelectedItem()).equals(cbCollationOriginal))
-					iscbCollationChanged = false;
-				else
-					iscbCollationChanged = true;
+//				if (((String) cbCollation.getSelectedItem()).equals(cbCollationOriginal))
+//					iscbCollationChanged = false;
+//				else
+//					iscbCollationChanged = true;
 			}
 		});
 
@@ -264,10 +260,10 @@ public class TableTab extends DatabaseElement {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (txtComment.getText().equals(txtCommentOriginal))
-					istxtCommentChanged = false;
-				else
-					istxtCommentChanged = true;
+//				if (txtComment.getText().equals(txtCommentOriginal))
+//					istxtCommentChanged = false;
+//				else
+//					istxtCommentChanged = true;
 			}
 		});
 		GroupLayout gl_borderTableOptions = new GroupLayout(borderTableOptions);
@@ -378,34 +374,27 @@ public class TableTab extends DatabaseElement {
 		tabPane.insertTab(tableDDLTab.title, null, tableDDLTab, null, DDL_INDEX);
 		tabPane.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				JTabbedPane tp = (JTabbedPane) e.getSource();
-				if (tp.getSelectedIndex() == DDL_INDEX) {
-					tableDDLTab.setSQL(getDefinition());
+				if (isNew) {
+					JTabbedPane tp = (JTabbedPane) e.getSource();
+					if (tp.getSelectedIndex() == DDL_INDEX) {
+						tableDDLTab.setSQL(getDefinition());
+					}
 				}
 			}
 
 		});
 
-		tableDataTab = new TableDataTab(ventana, database);
+		tableDataTab = new DataTab(ventana, database);
 		tabList.add(tableDataTab);
 		tabPane.insertTab(tableDataTab.title, null, tableDataTab, null, DATA_INDEX);
 
 	}
 
 	protected void loadData() {
-		istxtAutoIncrementChanged = false;
-		iscbEngineChanged = false;
-		istxtTableNameChanged = false;
-		iscbCharsetChanged = false;
-		iscbCollationChanged = false;
-		istxtCommentChanged = false;
-
 		if (!isNew) {
-			txtTableName.setText(selectedTable);
-			txtTableNameOriginal = selectedTable;
+			txtTableName.setText(selectedElement);
 
-			String sql = String.format(Query.SQL_SHOW_CREATE_TABLE, selectedDB, selectedTable);
-			// String txtCreate = "";
+			String sql = String.format(Query.SQL_SHOW_CREATE_TABLE, selectedDB, selectedElement);
 			Query query = new Query(database);
 			if (query.executeQuery(sql)) {
 				query.next();
@@ -487,6 +476,12 @@ public class TableTab extends DatabaseElement {
 
 			i++;
 		}
+
+		if (cbCollationOriginal == null)
+			cbCollationOriginal = (String) cbCollation.getSelectedItem();
+		if (cbCharsetOriginal == null)
+			cbCharsetOriginal = (String) cbCharset.getSelectedItem();
+
 	}
 
 	private String[] getComboList(String sql, String columnName, String defaultValue) {
@@ -514,10 +509,11 @@ public class TableTab extends DatabaseElement {
 
 	public void setSelectedTable(String selectedDb, String selectedTable) {
 		this.selectedDB = selectedDb;
-		this.selectedTable = selectedTable;
+		this.selectedElement = selectedTable;
 
 		for (DatabaseElement element : tabList) {
-			element.setSelectedTable(selectedDB, selectedTable);
+			//element.setSelectedTable(selectedDB, selectedTable);
+			element.setSelectedElement(selectedDb, selectedTable, Database.TABLE);
 		}
 
 		this.refresh();
@@ -533,35 +529,55 @@ public class TableTab extends DatabaseElement {
 		// TODO: Codigo para ejecutar sql.
 		// TODO: Tomar en cuenta el cambio de nombre cuando hago refresh.
 
-		ScriptToDatabaseDialog sdb = new ScriptToDatabaseDialog(ventana, database);
-		sdb.setSQLSript(sql);
-		if (sdb.showDialog()) {
-			if (isNew) {
-				ventana.refresh();
-				ventana.setSelectedTable(selectedDB, selectedTable);
-			} else
-				refresh();
-		}
-		System.out.println(sql);
+		// isTableChanged toma su valor en getDefinition, por eso debe estar debajo de
+		// esa funcion.
+		if (isTableChanged) {
+			ScriptToDatabaseDialog sdb = new ScriptToDatabaseDialog(ventana, database);
+			sdb.setSQLSript(sql);
+			if (sdb.showDialog()) {
+				//TODO: Corregir estos if, hay muchos preguntando por isNew
+				selectedElement = txtTableName.getText();
+				if (isNew) {
+					ventana.setSelectedTable(selectedDB, selectedElement);
+					//ventana.setTreeSelection(selectedDB, selectedTable);
+				} else
+					refresh();
+				// TODO: Agregar en la seccion de mensajes de la ventana el texto de
+				// confirmación de la operacion dependiendo de si es creacion o modificacion de
+				// una tabla: Changes applied, New table created.
+				if(isNew)
+					ventana.addMessage(resource.getString("TableTab.newTableCreaated"));
+				else
+					ventana.addMessage(resource.getString("TableTab.changesApplied"));
+				if(isNew)
+					parent.close();
+			}
+		} else
+			ventana.addMessage(resource.getString("TableTab.noChangeDetected"));
 	}
 
 	public String getDefinition() {
-		selectedTable = txtTableName.getText();
-		txtTableNameOriginal = selectedTable;
+		isTableChanged = false;
 
 		String sql = "";
-		if (isNew)
-			sql = "CREATE TABLE `" + selectedDB + "`.`" + selectedTable + "`(\n";
-		else
-			sql = "ALTER TABLE `" + selectedDB + "`.`" + selectedTable + "`\n";
+		if (isNew) {
+			isTableChanged = true;
+			sql = "CREATE TABLE `" + selectedDB + "`.`" + txtTableName.getText() + "`(";
+		} else
+			sql = "ALTER TABLE `" + selectedDB + "`.`" + txtTableName.getText() + "`";
 
-		if (istxtTableNameChanged) {
+		if (!isNew && !txtTableName.getText().equals(selectedElement)) {
 			sql += "\nRENAME TO `" + selectedDB + "`.`" + txtTableName.getText() + "`";
+			isTableChanged = true;
 		}
 
 		// Proceso columnas
 		Vector<ColumnModel> columns = tableColumnsTab.getDefinitionsForSQL();
 		for (int i = 0; i < columns.size(); i++) {
+			if (i == 0)
+				sql += "\n";
+
+			isTableChanged = true;
 			if (isNew) {
 				sql += "\t" + columns.get(i).getDefinition();
 			} else {
@@ -587,6 +603,7 @@ public class TableTab extends DatabaseElement {
 			sql += ", \n";
 
 		for (int i = 0; i < indices.size(); i++) {
+			isTableChanged = true;
 			if (isNew) {
 				sql += "\t" + indices.get(i).getDefinition();
 			} else {
@@ -607,25 +624,38 @@ public class TableTab extends DatabaseElement {
 		if (isNew)
 			sql += "\n)";
 
-		// Opciones
-		if (iscbEngineChanged)
-			sql += "\nENGINE = " + cbEngine.getSelectedItem();
-
-		if (iscbCharsetChanged) {
-			if (cbCharset.getSelectedIndex() != DEFAULT)
-				sql += "\nDEFAULT CHARACTER SET = " + cbCharset.getSelectedItem();
+		// Opciones de la tabla.
+		if (!cbEngine.getSelectedItem().equals(cbEngineOriginal)) {
+			isTableChanged = true;
+			sql += "\nENGINE = " + cbEngine.getSelectedItem() + ", ";
 		}
 
-		if (iscbCollationChanged) {
-			if (cbCollation.getSelectedIndex() != DEFAULT)
-				sql += "\nCOLLATE = " + cbCollation.getSelectedItem();
+		if (isNew && cbCharset.getSelectedIndex() != 0 || !isNew) {
+			if (!cbCharset.getSelectedItem().equals(cbCharsetOriginal)) {
+				isTableChanged = true;
+				sql += "\nDEFAULT CHARACTER SET = " + cbCharset.getSelectedItem() + ", ";
+			}
 		}
 
-		if (istxtAutoIncrementChanged && txtAutoIncrement.getText().length() > 0)
-			sql += " \nAUTOINCREMENT = " + txtAutoIncrement.getText();
+		if (isNew && cbCollation.getSelectedIndex() != 0 || !isNew) {
+			if (!cbCollation.getSelectedItem().equals(cbCollationOriginal)) {
+				isTableChanged = true;
+				sql += "\nCOLLATE = " + cbCollation.getSelectedItem() + ", ";
+			}
+		}
 
-		if (istxtCommentChanged && txtComment.getText().length() > 0)
-			sql += "\nCOMMENT '" + txtComment.getText() + "'";
+		if (!txtAutoIncrement.getText().equals(txtAutoIncrementOriginal) && txtAutoIncrement.getText().length() > 0) {
+			isTableChanged = true;
+			sql += " \nAUTOINCREMENT = " + txtAutoIncrement.getText() + ", ";
+		}
+
+		if (!txtComment.getText().equals(txtCommentOriginal) && txtComment.getText().length() > 0) {
+			isTableChanged = true;
+			sql += "\nCOMMENT '" + txtComment.getText() + "', ";
+		}
+
+		if (sql.endsWith(", "))
+			sql = sql.substring(0, sql.lastIndexOf(","));
 
 		sql += ";";
 
@@ -635,9 +665,8 @@ public class TableTab extends DatabaseElement {
 	public void btnCancelMouseClicked(MouseEvent e) {
 
 	}
-
+	
 	private void clean() {
-		// TODO pasar a resource.
 		cbEngine.setSelectedItem(database.getDefaultEngine());
 		txtAutoIncrement.setText("");
 		cbCharset.setSelectedIndex(DEFAULT);

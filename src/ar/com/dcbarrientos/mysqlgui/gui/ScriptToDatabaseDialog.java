@@ -27,6 +27,7 @@
 package ar.com.dcbarrientos.mysqlgui.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -50,7 +51,10 @@ import ar.com.dcbarrientos.mysqlgui.tools.SQLTextArea;
  */
 public class ScriptToDatabaseDialog extends JDialog{
 	private static final long serialVersionUID = 1L;
+	private final int WIDTH = 600;
+	private final int HEIGHT = 400;
 	
+	private Ventana ventana;
 	private Database database;
 	private ResourceBundle resource;
 	
@@ -70,6 +74,7 @@ public class ScriptToDatabaseDialog extends JDialog{
 	
 	public ScriptToDatabaseDialog(Ventana ventana, Database database) {
 		this.resource = ventana.resource;
+		this.ventana = ventana;
 		this.database = database;
 		this.saved = false;
 		
@@ -119,6 +124,8 @@ public class ScriptToDatabaseDialog extends JDialog{
 		panel.add(botones, BorderLayout.SOUTH);
 		
 		titulo = new JLabel();
+		setPreferredSize(new Dimension(WIDTH, HEIGHT));
+		pack();
 		setModal(true);
 		setLocationRelativeTo(null);
 	}
@@ -129,9 +136,9 @@ public class ScriptToDatabaseDialog extends JDialog{
 	}	
 	
 	private void btnApplyMouseClicked(MouseEvent e) {
-		//TODO: transaccion para ejecutar la o las sql.
 		Query query = new Query(database);
 		if(query.executeUpdate(sqlTextArea.getText()) != Query.ERROR) {
+			ventana.addMessage(database.unformat(sqlTextArea.getText()));
 			saved = true;
 			dispose();			
 		}else {

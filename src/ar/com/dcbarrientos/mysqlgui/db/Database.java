@@ -29,7 +29,10 @@ package ar.com.dcbarrientos.mysqlgui.db;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
+
+import com.github.vertical_blank.sqlformatter.SqlFormatter;
 
 import ar.com.dcbarrientos.mysqlgui.Application;
 
@@ -39,10 +42,19 @@ import ar.com.dcbarrientos.mysqlgui.Application;
  */
 public class Database {
 	public static final int DEFAULT_PORT = 3306;
-	
+
 	private final String DATABASE_DRIVER = "com.mysql.jdbc.Driver";
 	private final String DABASE_URL = "jdbc:mysql://";
-	
+
+	public static int NONE = -1;
+	public static int SERVER = 0;
+	public static int DATABASE = 1;
+	public static int TABLE = 2;
+	public static int VIEW = 3;
+	public static int STORED_PROCEDURE = 4;
+	public static int FUNCTION = 5;
+	public static int SEPARATOR = 6;
+
 	public final int DATATYPE_LENTH_INDEX = 0;
 	public final int DATATYPE_PRIMARY_KEY_INDEX = 1;
 	public final int DATATYPE_NOT_NULL_INDEX = 2;
@@ -60,9 +72,11 @@ public class Database {
 	private String pass;
 	private Connection connection;
 	private String selectedDb = "";
-	private String selectedTable = "";
+	private String selectedElement;
+	private int selectedType;
+//	private String selectedTable = "";
 	public boolean isSelectedDB = false;
-	public boolean isSelectedTable = false;
+//	public boolean isSelectedTable = false;
 
 	private String errorMessage = "";
 	private int errorCode;
@@ -87,64 +101,72 @@ public class Database {
 	private void loadData() {
 		mySqlDataType = new HashMap<String, Boolean[]>();
 		// Los booleans de esta estructura habilitan o deshabilitan controles.
-		// Length, Primary key, not null, unique, binary, unsigned, zero fill, autoincrement, generated
+		// Length, Primary key, not null, unique, binary, unsigned, zero fill,
+		// autoincrement, generated
 
-		mySqlDataType.put("BINARY", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("BLOB", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("LONGBLOB", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("MEDIUMBLOB", 		new Boolean[]{false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("TINYBLOB", 			new Boolean[]{false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("VARBINARY", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
-		
-		mySqlDataType.put("DATE", 				new Boolean[]{false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("DATETIME", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("TIME", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("TIMESTAMP", 			new Boolean[]{true, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("YEAR", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("BINARY", new Boolean[] { true, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("BLOB", new Boolean[] { true, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("LONGBLOB", new Boolean[] { true, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("MEDIUMBLOB", new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("TINYBLOB", new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("VARBINARY", new Boolean[] { true, true, true, true, false, false, false, false, true });
 
-		mySqlDataType.put("GEOMETRY", 			new Boolean[] {false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("GEOMETRYCOLLECTION", new Boolean[] {false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("LINESTRING", 		new Boolean[] {false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("MULTILINESTRING", new Boolean[] {false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("MULTIPOINT", new Boolean[] {false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("MULTIPOLYGON", new Boolean[] {false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("POINT", new Boolean[] {false, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("POLYGON", new Boolean[] {false, true, true, true, false, false, false, false, true});
-		
-		mySqlDataType.put("BIGINT", 			new Boolean[]{true, true, true, true, false, true, true, true, true});
-		mySqlDataType.put("DECIMAL", 			new Boolean[]{false, true, true, true, false, true, true, true, true});
-		mySqlDataType.put("DOUBLE", 			new Boolean[]{false, true, true, true, false, true, true, true, true});
-		mySqlDataType.put("FLOAT", 				new Boolean[]{false, true, true, true, false, true, true, true, true});
-		mySqlDataType.put("INT", 				new Boolean[]{true, true, true, true, false, true, true, true, true});
-		mySqlDataType.put("MEDIUMINT", 			new Boolean[]{true, true, true, true, false, true, true, true, true});
-		mySqlDataType.put("REAL", 				new Boolean[]{false, true, true, true, false, true, true, true, true});
-		mySqlDataType.put("SMALLINT", 			new Boolean[]{true, true, true, true, false, true, true, true, true});
-		mySqlDataType.put("TINYINT", 			new Boolean[]{true, true, true, true, false, true, true, true, true});
+		mySqlDataType.put("DATE", new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("DATETIME", new Boolean[] { true, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("TIME", new Boolean[] { true, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("TIMESTAMP", new Boolean[] { true, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("YEAR", new Boolean[] { true, true, true, true, false, false, false, false, true });
 
-		mySqlDataType.put("CHAR", 				new Boolean[]{true, true, true, true, true, false, false, false, true});
-		mySqlDataType.put("NCHAR", 				new Boolean[]{true, true, true, true, true, false, false, false, true});
-		mySqlDataType.put("NVARCHAR", 			new Boolean[]{true, true, true, true, true, false, false, false, true});
-		mySqlDataType.put("VARCHAR", 			new Boolean[]{true, true, true, true, true, false, false, false, true});
+		mySqlDataType.put("GEOMETRY", new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("GEOMETRYCOLLECTION",
+				new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("LINESTRING", new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("MULTILINESTRING",
+				new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("MULTIPOINT", new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("MULTIPOLYGON", new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("POINT", new Boolean[] { false, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("POLYGON", new Boolean[] { false, true, true, true, false, false, false, false, true });
 
-		mySqlDataType.put("LONGTEXT", 			new Boolean[]{false, true, true, true, true, false, false, false, true});
-		mySqlDataType.put("MEDIUMTEXT", 		new Boolean[]{false, true, true, true, true, false, false, false, true});
-		mySqlDataType.put("TEXT", 				new Boolean[]{true, true, true, true, true, false, false, false, true});
-		mySqlDataType.put("TINYTEXT", 			new Boolean[]{false, true, true, true, true, false, false, false, true});
+		mySqlDataType.put("BIGINT", new Boolean[] { true, true, true, true, false, true, true, true, true });
+		mySqlDataType.put("DECIMAL", new Boolean[] { false, true, true, true, false, true, true, true, true });
+		mySqlDataType.put("DOUBLE", new Boolean[] { false, true, true, true, false, true, true, true, true });
+		mySqlDataType.put("FLOAT", new Boolean[] { false, true, true, true, false, true, true, true, true });
+		mySqlDataType.put("INT", new Boolean[] { true, true, true, true, false, true, true, true, true });
+		mySqlDataType.put("MEDIUMINT", new Boolean[] { true, true, true, true, false, true, true, true, true });
+		mySqlDataType.put("REAL", new Boolean[] { false, true, true, true, false, true, true, true, true });
+		mySqlDataType.put("SMALLINT", new Boolean[] { true, true, true, true, false, true, true, true, true });
+		mySqlDataType.put("TINYINT", new Boolean[] { true, true, true, true, false, true, true, true, true });
 
-		mySqlDataType.put("BIT", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("BOOLEAN", 			new Boolean[]{false, true, true, true, false, true, true, true, true});
-		mySqlDataType.put("ENUM", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
-		mySqlDataType.put("SET", 				new Boolean[]{true, true, true, true, false, false, false, false, true});
+		mySqlDataType.put("CHAR", new Boolean[] { true, true, true, true, true, false, false, false, true });
+		mySqlDataType.put("NCHAR", new Boolean[] { true, true, true, true, true, false, false, false, true });
+		mySqlDataType.put("NVARCHAR", new Boolean[] { true, true, true, true, true, false, false, false, true });
+		mySqlDataType.put("VARCHAR", new Boolean[] { true, true, true, true, true, false, false, false, true });
 
-		//mySqlDataType.put("INTEGER", 			new Boolean[]{true});
-		//mySqlDataType.put("DEC", 				new Boolean[]{true});
-		//mySqlDataType.put("NUMERIC", 			new Boolean[]{true});
-		//mySqlDataType.put("FIXED", 				new Boolean[]{true});
-		//mySqlDataType.put("DOUBLE PRECISION", 	new Boolean[]{true});
-		//mySqlDataType.put("BOOL", 				new Boolean[]{false});
+		mySqlDataType.put("LONGTEXT", new Boolean[] { false, true, true, true, true, false, false, false, true });
+		mySqlDataType.put("MEDIUMTEXT", new Boolean[] { false, true, true, true, true, false, false, false, true });
+		mySqlDataType.put("TEXT", new Boolean[] { true, true, true, true, true, false, false, false, true });
+		mySqlDataType.put("TINYTEXT", new Boolean[] { false, true, true, true, true, false, false, false, true });
+
+		mySqlDataType.put("BIT", new Boolean[] { true, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("BOOLEAN", new Boolean[] { false, true, true, true, false, true, true, true, true });
+		mySqlDataType.put("ENUM", new Boolean[] { true, true, true, true, false, false, false, false, true });
+		mySqlDataType.put("SET", new Boolean[] { true, true, true, true, false, false, false, false, true });
+
+		// mySqlDataType.put("INTEGER", new Boolean[]{true});
+		// mySqlDataType.put("DEC", new Boolean[]{true});
+		// mySqlDataType.put("NUMERIC", new Boolean[]{true});
+		// mySqlDataType.put("FIXED", new Boolean[]{true});
+		// mySqlDataType.put("DOUBLE PRECISION", new Boolean[]{true});
+		// mySqlDataType.put("BOOL", new Boolean[]{false});
 
 	}
 
+	/**
+	 * Attempts to establish a connection to the given database. The
+	 * <code>DriverManager</code> attempts to select an appropriate driver from the
+	 * set of registered JDBC drivers.
+	 */
 	public Connection connect() {
 		connection = null;
 
@@ -167,10 +189,83 @@ public class Database {
 		return connection;
 	}
 
+	/**
+	 * Get the current connection.
+	 * 
+	 * @return current connection.
+	 */
 	public Connection getConnection() {
 		return connection;
 	}
 
+	/**
+	 * Sets the given catalog name in order to select a subspace of this
+	 * <code>Connection</code> object's database in which to work.
+	 * <P>
+	 * If the driver does not support catalogs, it will silently ignore this
+	 * request.
+	 * <p>
+	 * Calling {@code setCatalog} has no effect on previously created or prepared
+	 * {@code Statement} objects. It is implementation defined whether a DBMS
+	 * prepare operation takes place immediately when the {@code Connection} method
+	 * {@code prepareStatement} or {@code prepareCall} is invoked. For maximum
+	 * portability, {@code setCatalog} should be called before a {@code Statement}
+	 * is created or prepared.
+	 *
+	 * @param catalog the name of a catalog (subspace in this
+	 *                <code>Connection</code> object's database) in which to work
+	 * @see #getCatalog
+	 */
+	public boolean setCatalog(String catalog) {
+		try {
+			connection.setCatalog(catalog);
+		} catch (SQLException e) {
+			if (Application.DEBUG)
+				e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Creates a <code>Statement</code> object for sending SQL statements to the
+	 * database. SQL statements without parameters are normally executed using
+	 * <code>Statement</code> objects. If the same SQL statement is executed many
+	 * times, it may be more efficient to use a <code>PreparedStatement</code>
+	 * object.
+	 * <P>
+	 * Result sets created using the returned <code>Statement</code> object will by
+	 * default be type <code>TYPE_FORWARD_ONLY</code> and have a concurrency level
+	 * of <code>CONCUR_READ_ONLY</code>. The holdability of the created result sets
+	 * can be determined by calling {@link #getHoldability}.
+	 *
+	 * @return a new default <code>Statement</code> object
+	 */
+	public Statement createStatement() {
+		try {
+			return connection.createStatement();
+		} catch (SQLException e) {
+			if (Application.DEBUG)
+				e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Releases this <code>Connection</code> object's database and JDBC resources
+	 * immediately instead of waiting for them to be automatically released.
+	 * <P>
+	 * Calling the method <code>close</code> on a <code>Connection</code> object
+	 * that is already closed is a no-op.
+	 * <P>
+	 * It is <b>strongly recommended</b> that an application explicitly commits or
+	 * rolls back an active transaction prior to calling the <code>close</code>
+	 * method. If the <code>close</code> method is called and there is an active
+	 * transaction, the results are implementation-defined.
+	 * <P>
+	 */
 	public boolean close() {
 		try {
 			connection.close();
@@ -186,6 +281,12 @@ public class Database {
 		return true;
 	}
 
+	/**
+	 * Gives a <code>boolean</code> that will change depending on if there is a
+	 * connection or not.
+	 * 
+	 * @return true if it is connected, false if is not.
+	 */
 	public boolean isConnected() {
 		if (connection == null)
 			return false;
@@ -193,6 +294,12 @@ public class Database {
 		return true;
 	}
 
+	
+	/**
+	 * Retrieves a <code>String</code> with the database server version.
+	 * 
+	 * @return the server version.
+	 */
 	public String getVersion() {
 		Query query = new Query(this);
 		String v = "";
@@ -204,14 +311,24 @@ public class Database {
 		return v;
 	}
 
+	/**
+	 * Get the current error message.
+	 * 
+	 * @return the error message.
+	 */
 	public String getErrorMessage() {
 		return errorCode + ": " + errorMessage;
 	}
 
+	/**
+	 * Get the current connection id (root@server.com).
+	 * 
+	 * @return the current connection id.
+	 */
 	public String getConnectionID() {
 		return user + "@" + host;
 	}
-	
+
 	public String getDefaultCharset() {
 		Query query = new Query(this);
 		String defaultCharset = "";
@@ -219,11 +336,11 @@ public class Database {
 		query.next();
 		defaultCharset = query.getString("Value");
 		query.close();
-		
+
 		return defaultCharset;
 	}
-	
-	//Nadie la usa
+
+	// Nadie la usa
 	public String getDefaultCharset(String charset) {
 		Query query = new Query(this);
 		String defaultCollation = "";
@@ -231,39 +348,62 @@ public class Database {
 		query.next();
 		defaultCollation = query.getString("Value");
 		query.close();
-		
-		return defaultCollation;
-	}	
 
-	public void setSelectedTable(String db, String table) {
+		return defaultCollation;
+	}
+
+	public void setSelectedElement(String db, String element, int type) {
 		setSelectedDatabase(db);
 
-		if (table.equals(""))
-			this.isSelectedTable = false;
+		selectedType = type;
+		if (type == NONE)
+			selectedElement = "";
 		else
-			this.isSelectedTable = true;
+			selectedElement = element;
 
-		this.selectedTable = table;
 	}
 
 	public void setSelectedDatabase(String db) {
-		if (db.equals(""))
+		try {
+			if (db != null)
+				connection.setCatalog(db);
+//			else
+//				connection.setCatalog("");
+
+		} catch (SQLException e) {
+			if (Application.DEBUG)
+				e.printStackTrace();
+		}
+
+		if (db == null || db.equals(""))
 			this.isSelectedDB = false;
 		else
 			this.isSelectedDB = true;
 
 		this.selectedDb = db;
 
-		this.selectedTable = "";
-		this.isSelectedTable = false;
+//		this.selectedTable = "";
+		this.selectedElement = "";
+		this.selectedType = NONE;
+//		this.isSelectedTable = false;
 	}
 
 	public String getSelectedDatabase() {
 		return selectedDb;
 	}
 
-	public String getSelectedTable() {
-		return this.selectedTable;
+	public String getSelectedElement() {
+		return this.selectedElement;
+	}
+
+	public int getSelectedType() {
+		return this.selectedType;
+	}
+
+	public boolean isTableSelected() {
+		if (selectedType == TABLE)
+			return true;
+		return false;
 	}
 
 	/**
@@ -275,7 +415,7 @@ public class Database {
 	public int existeDatabase(String databaseName) {
 		int resu = 0;
 
-		if (databaseName.length() == 0)
+		if (databaseName == null || databaseName.length() == 0)
 			resu--;
 		else {
 			Query query = new Query(this);
@@ -301,7 +441,7 @@ public class Database {
 		int resu = 0;
 		resu += existeDatabase(databaseName);
 
-		if (tableName.length() == 0)
+		if (tableName == null || tableName.length() == 0)
 			resu--;
 		else {
 			Query query = new Query(this);
@@ -314,7 +454,7 @@ public class Database {
 
 		return resu;
 	}
-	
+
 	public static String trimCuote(String value) {
 		if (value.startsWith("'") || value.startsWith("\"") || value.startsWith("`")) {
 			value = value.substring(1);
@@ -326,18 +466,31 @@ public class Database {
 
 		return value;
 	}
-	
+
 	public String getDefaultEngine() {
 		String engine = "";
 		Query query = new Query(this);
 		query.executeQuery(Query.SQL_ENGINE_LIST);
-		while(query.next() && engine.length() == 0) {
-			if(query.getString("Support").equals("DEFAULT")) {
+		while (query.next() && engine.length() == 0) {
+			if (query.getString("Support").equals("DEFAULT")) {
 				engine = query.getString("Engine");
 			}
 		}
-		
+
 		return engine;
 	}
 
+	public String format(String sql) {
+		return SqlFormatter.format(sql);
+	}
+
+	public String unformat(String sql) {
+		String resu = "";
+		String[] lineas = sql.split("\n");
+		for (int i = 0; i < lineas.length; i++) {
+			resu += lineas[i].trim() + " ";
+		}
+
+		return resu;
+	}
 }

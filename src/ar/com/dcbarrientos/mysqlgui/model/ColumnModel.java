@@ -83,8 +83,8 @@ public class ColumnModel {
 			definition += "UNIQUE ";
 		if(notNull)
 			definition += "NOT NULL ";
-		if(!notNull)
-			definition += "NULL ";
+//		if(!notNull)
+//			definition += "NULL ";
 		
 		if(!generated) {
 			if(autoincrement)

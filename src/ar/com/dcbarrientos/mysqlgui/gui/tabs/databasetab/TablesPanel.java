@@ -182,6 +182,13 @@ public class TablesPanel extends DatabaseElement {
 		add(scrollPane, BorderLayout.CENTER);
 
 		table = new JTable();
+		table.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if(isTableSelected()) {
+					ventana.setTreeSelection(selectedDB, getSelectedTableName(), Database.TABLE,true);
+				}
+			}
+		});
 		model = new TableModel();
 		model.setColumnHeaders(columnHeaders);
 		table.setModel(model);
